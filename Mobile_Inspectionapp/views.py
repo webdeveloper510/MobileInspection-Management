@@ -9,128 +9,121 @@ from Mobile_Inspectionapp.renderer import UserRenderer
 from django.http import Http404
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
+from distutils import errors
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
 
-class InspectionView(APIView): 
+
+
+
+#Creating tokens manually
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
+class UserRegistrationView(APIView):
+ renderer_classes=[UserRenderer]
+ def post(self,request,format=None):
+    serializer=UserRegistrationSerializer(data=request.data)
+    if serializer.is_valid(raise_exception=True):
+        user=serializer.save()
+        return Response({'msg':'Registation successful'},status=status.HTTP_201_CREATED)
+    return Response({errors:serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+
+class UserLoginView(APIView):
+    renderer_classes=[UserRenderer]
+    def post(self,request,format=None):
+        serializer=UserLoginSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            email=serializer.data.get('email')
+            password=serializer.data.get('password')
+            user=authenticate(email=email,password=password)
+            if user is not None:
+             token= get_tokens_for_user(user)
+             return Response({'token':token,'msg':'Login successful','status':'status.HTTP_200_OK'})
+
+            else:
+             return Response({'errors':{'non_field_errors':['email or password is not valid']},'status':'status.HTTP_404_NOT_FOUND'})
+            
+class LeadView(APIView): 
    renderer_classes=[UserRenderer]
    def post(self, request, format=None):
-      serializer=InspectionSerializer(data=request.data)
+      serializer=LeadSerializer(data=request.data)
       if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response({"message":"Inspection Completed successfully"})
+            return Response({"message":"sucess"})
       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+  
+class LeadAddressView(APIView): 
+   renderer_classes=[UserRenderer]
+   def post(self, request, format=None):
+      serializer=LeadAddressSerializer(data=request.data)
+      if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response({"message":"sucess"})
+      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)             
 
-class Login(generics.GenericAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserLoginSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer_class = UserLoginSerializer(data=request.data)
-        if serializer_class.is_valid(raise_exception=True):
-            return Response({"Status":"you have logged in successfully"})
-        return Response(serializer_class.errors, status=HTTP_400_BAD_REQUEST)
-      
-class Logout(generics.GenericAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserLogoutSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer_class = UserLogoutSerializer(data=request.data)
-        if serializer_class.is_valid(raise_exception=True):
-            return Response(serializer_class.data, status=HTTP_200_OK)
-        return Response(serializer_class.errors, status=HTTP_400_BAD_REQUEST) 
-        
-
-            
-class UnitListView(APIView):
+class ServiceView(APIView):
    
     def get(self, request, format=None):
-        snippets = Unit.objects.all().order_by('id')
-        serializer = UnitSerializer(snippets, many=True)
+        service = Service.objects.all().order_by('id')
+        serializer = ServiceSerializer(service, many=True)
         return Response(serializer.data)
     
     
     def post(self, request, format=None):
-        serializer = UnitSerializer(data=request.data)
+        serializer = ServiceSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'success':'Unit added Successfully'})
+            return Response({'message':'Successfully added'})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class DeleteUnit(APIView):
     
-    @csrf_exempt
-    def get_object(self, pk):
-        try:
-            return Unit.objects.get(pk=pk)
-        except Unit.DoesNotExist:
-            raise Http404  
-    @csrf_exempt
-    def delete(self, request, pk, format=None):
-        unit = self.get_object(pk)
-        if unit.delete():
-          return Response({'success':'unit deleted successfully'})
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-          
-            
-class ServicesListView(APIView):
+class ServiceTypeView(APIView):
    
     def get(self, request, format=None):
-        snippets = Services.objects.all().order_by('id')
-        serializer = ServicesSerializer(snippets, many=True)
+        service = ServiceType.objects.all().order_by('id')
+        serializer = ServiceTypeSerializer(service, many=True)
         return Response(serializer.data)
     
     
     def post(self, request, format=None):
-        serializer = ServicesSerializer(data=request.data)
+        serializer = ServiceTypeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'success':'services added Successfully'})
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+            return Response({'message':'Successfully added'})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class DeleteService(APIView):
-    
-    @csrf_exempt
-    def get_object(self, pk):
-        try:
-            return Services.objects.get(pk=pk)
-        except Services.DoesNotExist:
-            raise Http404  
-    @csrf_exempt
-    def delete(self, request, pk, format=None):
-        service = self.get_object(pk)
-        if service.delete():
-          return Response({'success':'service deleted successfully'})
-        return Response(status=status.HTTP_400_BAD_REQUEST)       
-            
-class ElectricalInspectableItemView(APIView):
+class PromotionCategoryView(APIView):
    
     def get(self, request, format=None):
-        snippets = ElectricalInspectableItem.objects.all().order_by('id')
-        serializer = ElectricalInspectableItemSerializer(snippets, many=True)
+        service = Promotion_Category.objects.all().order_by('id')
+        serializer = PromotionCategorySerializer(service, many=True)
         return Response(serializer.data)
     
     
     def post(self, request, format=None):
-        serializer = ElectricalInspectableItemSerializer(data=request.data)
+        serializer = PromotionCategorySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'success':'Electrical Item added Successfully'})
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
-
-class DeleteElectricalInspectableItem(APIView):
+            return Response({'message':'Successfully added'})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    @csrf_exempt
-    def get_object(self, pk):
-        try:
-            return ElectricalInspectableItem.objects.get(pk=pk)
-        except ElectricalInspectableItem.DoesNotExist:
-            raise Http404  
-    @csrf_exempt
-    def delete(self, request, pk, format=None):
-        item = self.get_object(pk)
-        if item.delete():
-          return Response({'success':'item deleted successfully'})
-        return Response(status=status.HTTP_400_BAD_REQUEST)              
-
-            
-      
+class PromotionView(APIView):
+   
+    def get(self, request, format=None):
+        service = Promotion.objects.all().order_by('id')
+        serializer = PromotionSerializer(service, many=True)
+        return Response(serializer.data)
+    
+    
+    def post(self, request, format=None):
+        serializer = PromotionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message':'Successfully added'})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

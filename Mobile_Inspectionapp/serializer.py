@@ -1,136 +1,163 @@
 from rest_framework import serializers
-from Mobile_Inspectionapp.models import User, Inspection,Unit,Services,ElectricalInspectableItem
 from django.core.exceptions import ValidationError
 from django.db.models import Q 
+from .models import *
 from django.core.exceptions import ValidationError
 from uuid import uuid4
 
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    password2=serializers.CharField(style={'input_type':'password'},write_only=True)
+    class Meta:
+        model=User
+
+        fields=['id','email','password','password2','First_name','Last_name','title','mobile','attribute_name']
+
+        extra_kwargs={
+        
+            'First_name': {'error_messages': {'required': "Firstname is required",'blank':'please provide a firstname'}},
+            'Last_name': {'error_messages': {'required': "Lastname is required",'blank':'please provide a lastname'}},
+            'email': {'error_messages': {'required': "email is required",'blank':'please provide a email'}},
+            'title': {'error_messages': {'required': "title is required",'blank':'please provide a title'}},
+            'mobile': {'error_messages': {'required': "mobile Number is required",'blank':'please provide a mobile number'}},
+            'attribute_name': {'error_messages': {'required': "attribue_name is required",'blank':'please provide a attribute_name'}},
+            'password': {'error_messages': {'required': "password is required",'blank':'please Enter a password'}},
+            'password2': {'error_messages': {'required': "confirm password is required",'blank':'Confirm password could not blank'}},
+          }
+
+        #validating password and confirm password
+    def validate(self, attrs):
+      password=attrs.get('password')
+      password2=attrs.get('password2')
+      if password!=password2:
+        raise serializers.ValidationError('password and confirm password doesnot match')
+
+      return attrs
+
+    def create(self, validated_data):
+      return User.objects.create_user(** validated_data)
 
 class UserLoginSerializer(serializers.ModelSerializer):
-    # to accept either username or email
-    user_id = serializers.CharField()
-    password = serializers.CharField()
-    token = serializers.CharField(required=False, read_only=True)
-
-    def validate(self, data):
-        # user,email,password validator
-        user_id = data.get("user_id", None)
-        password = data.get("password", None)
-        if not user_id and not password:
-            raise ValidationError("Details not entered.")
-        user = None
-        # if the email has been passed
-        if '@' in user_id:
-            user = User.objects.filter(
-                Q(email=user_id) &
-                Q(password=password)
-                ).distinct()
-            if not user.exists():
-                raise ValidationError("User credentials are not correct.")
-            user = User.objects.get(email=user_id)
-        else:
-            user = User.objects.filter(
-                Q(username=user_id) &
-                Q(password=password)
-            ).distinct()
-            if not user.exists():
-                raise ValidationError("User credentials are not correct.")
-            user = User.objects.get(username=user_id)
-        if user.ifLogged:
-            raise ValidationError("User already logged in.")
-        user.ifLogged = True
-        data['token'] = uuid4()
-        user.token = data['token']
-        user.save()
-        return data
-
+    email = serializers.EmailField(max_length=250)
     class Meta:
-        model = User
-        fields = (
-            'user_id',
-            'password',
-            'token',
-        )
-
-        read_only_fields = (
-            'token',
-        )
-
-
-class UserLogoutSerializer(serializers.ModelSerializer):
-    token = serializers.CharField()
-    status = serializers.CharField(required=False, read_only=True)
-
-    def validate(self, data):
-        token = data.get("token", None)
-        print(token)
-        user = None
-        try:
-            user = User.objects.get(token=token)
-            if not user.ifLogged:
-                raise ValidationError("User is not logged in.")
-        except Exception as e:
-            raise ValidationError(str(e))
-        user.ifLogged = False
-        user.token = ""
-        user.save()
-        data['status'] = "User is logged out."
-        return data
-
-    class Meta:
-        model = User
-        fields = (
-            'token',
-            'status',
-        )
- 
-class InspectionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Inspection
-        fields = ['pha_name','pha_code','property_id','inspector_id','owner_id','owner_name','inspection_date','inspection_time','unit','unit_addressline1','unit_addressline2','city','state','zip_code','zip_plus']
-        extra_kwargs={
-                    "pha_name":{"error_messages":{"required":"pha_name is required"}},
-                    "pha_code":{"error_messages":{"required":"pha_code is required"}},
-                    "property_id":{"error_messages":{"required":"property_id is required"}},
-                    "inspector_id":{"error_messages":{"required":"inspector_id is required"}},
-                    "owner_id":{"error_messages":{"required":"owner_id is required"}},
-                    "owner_name":{"error_messages":{"required":"owner_name is required"}},
-                    "inspection_date":{"error_messages":{"required":"inspection_date is required"}},
-                    "inspection_time":{"error_messages":{"required":"inspection_time is required"}},
-                    "unit":{"error_messages":{"required":"unit is required"}},
-                    "unit_addressline1":{"error_messages":{"required":"unit_addressline1 is required"}},
-                    "unit_addressline2":{"error_messages":{"required":"unit_addressline2 is required"}},
-                    "city":{"error_messages":{"required":"city is required"}},
-                    "state":{"error_messages":{"required":"state is required"}},
-                    "zip_code":{"error_messages":{"required":"zip_code is required"}},
-                    "zip_plus":{"error_messages":{"required":"zip_plus is required"}},
-                    
-                      }
+     model=User
+     fields=['email','password']
+     extra_kwargs={
+        'email': {'error_messages': {'required': "email is required",'blank':'please provide a email'}},
+        'password': {'error_messages': {'required': "password is required",'blank':'please Enter a email'}}
         
-    def create(self, validate_data):
-     return Inspection.objects.create(**validate_data)
+    }
+
  
 
-class UnitSerializer(serializers.ModelSerializer):
+class LeadSerializer(serializers.ModelSerializer):
      class Meta:
-        model= Unit
+        model= Lead
+        fields = ['firstname','lastname','phone','email','comment','date','time']
+        extra_kwargs={
+            "firstname":{"error_messages":{"required":"firstname is required"}},
+            "lastname":{"error_messages":{"required":"lastname is required"}},
+            "phone":{"error_messages":{"required":"phone number is required"}},
+            "email":{"error_messages":{"required":"email is required"}},
+            "comment":{"error_messages":{"required":"comment is required"}},
+            "date":{"error_messages":{"required":"date is required"}},
+            "time":{"error_messages":{"required":"time is required"}},
+        }
+           
+     def create(self, validate_data):
+         return Lead.objects.create(**validate_data)
+     
+class LeadAddressSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= LeadAddress
+        fields = ['customer_id','street_number','unit_number','addressline1','addressline2','city','state','postal_code','country_name']
+        extra_kwargs={
+            "customer_id":{"error_messages":{"required":"customer is required"}},
+            "street_number":{"error_messages":{"required":"street_number is required"}},
+            "unit_number":{"error_messages":{"required":"addressline1 is required"}},
+            "addressline2":{"error_messages":{"required":"addressline2 is required"}},
+            "city":{"error_messages":{"required":"city is required"}},
+            "state":{"error_messages":{"required":"state is required"}},
+            "postal_code":{"error_messages":{"required":"postal_code is required"}},
+            "country_name":{"error_messages":{"required":"country_name is required"}},
+        }
+           
+     def create(self, validate_data):
+         return LeadAddress.objects.create(**validate_data)
+     
+class ServiceSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Service
         fields = '__all__'
            
      def create(self, validate_data):
-         return Unit.objects.create(**validate_data)
+         return Service.objects.create(**validate_data)
 
-class ServicesSerializer(serializers.ModelSerializer):
+class ServiceAgreementSerializer(serializers.ModelSerializer):
      class Meta:
-        model= Services
+        model= ServiceAgreement
         fields = '__all__'
            
      def create(self, validate_data):
-         return Services.objects.create(**validate_data)
-
-class ElectricalInspectableItemSerializer(serializers.ModelSerializer):
+         return ServiceAgreement.objects.create(**validate_data)
+     
+class ServiceTypeSerializer(serializers.ModelSerializer):
      class Meta:
-        model= ElectricalInspectableItem
+        model= ServiceType
         fields = '__all__'
            
      def create(self, validate_data):
-         return ElectricalInspectableItem.objects.create(**validate_data)
+         return ServiceType.objects.create(**validate_data)
+     
+class PromotionCategorySerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Promotion_Category
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Promotion_Category.objects.create(**validate_data)
+     
+class PromotionSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Promotion
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Promotion.objects.create(**validate_data)
+     
+class OperaterSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Operater
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Operater.objects.create(**validate_data)
+     
+class AddressSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Address
+        fields = ['customer_id','street_number','unit_number','addressline1','addressline2','city','state','postal_code','country_name']
+        extra_kwargs={
+            "customer_id":{"error_messages":{"required":"customer is required"}},
+            "street_number":{"error_messages":{"required":"street_number is required"}},
+            "unit_number":{"error_messages":{"required":"addressline1 is required"}},
+            "addressline2":{"error_messages":{"required":"addressline2 is required"}},
+            "city":{"error_messages":{"required":"city is required"}},
+            "state":{"error_messages":{"required":"state is required"}},
+            "postal_code":{"error_messages":{"required":"postal_code is required"}},
+            "country_name":{"error_messages":{"required":"country_name is required"}},
+        }
+class EstablishmentSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Establishment
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Establishment.objects.create(**validate_data)
+     
+class ServiceorderSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Service_Order
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Service_Order.objects.create(**validate_data)

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 # from datetime import timedelta
 # import os
 
@@ -27,7 +28,7 @@ SECRET_KEY = 'django-insecure-9=tl3ssl58r1ah-ninw4=z@!y-u92wte^cs=yn)=708_q^^tn=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -144,4 +145,13 @@ PASSWORD_RESET_TIMEOUT=900          # 900 Sec = 15 Min
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "http://intuitiveagilesolution.com:8000",
+    "http://54.201.14.154:8000",
 ]
+
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR,"static"
+]
+MEDIA_ROOT = BASE_DIR /"static/media"
+MEDIA_URL = "/media/"
