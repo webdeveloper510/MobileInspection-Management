@@ -4,17 +4,17 @@ from .models import *
 
 class UserModelAdmin(BaseUserAdmin):
    
-    list_display = ('id','email','username','is_admin')
+    list_display = ('id','email','First_name','Last_name','is_admin')
     list_filter = ('is_admin',)
     fieldsets = (
       ('User Credentials', {'fields': ('email', 'password')}),
-      ('Personal info', {'fields': ('username', )}),
+      ('Personal info', {'fields': ('First_name','Last_name', )}),
       ('Permissions', {'fields': ('is_admin',)}),
   )
     add_fieldsets = (
       (None, {
           'classes': ('wide',),
-          'fields': ('email', 'username',  'password'),
+          'fields': ('email', 'First_name', 'Last_name' 'password'),
       }),
   )
     search_fields = ('email',)
@@ -22,16 +22,37 @@ class UserModelAdmin(BaseUserAdmin):
     filter_horizontal = ()
 
 admin.site.register(User)
-# admin.site.register(UserManager)
-admin.site.register(Service)
-admin.site.register(ServiceAgreement)
-admin.site.register(ServiceType)
-admin.site.register(Operater)
-admin.site.register(Lead)
-admin.site.register(LeadAddress)
-admin.site.register(Establishment)
-admin.site.register(Service_Order)
-admin.site.register(Address)
-admin.site.register(Promotion_Category)
-admin.site.register(Promotion)
+@admin.register(ServiceAgreement)
+class ServiceAgreementAdmin(admin.ModelAdmin):
+  list_display = ('id','service_agreement_form','signature','customer_id','date','time')
+@admin.register(ServiceType)
+class ServiceTypeAdmin(admin.ModelAdmin):
+  list_display = ('id','service_agreement_id','service_type_name','price')
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+  list_display = ('id','service_type_id','name','description','service_image')
+@admin.register(Operater)
+class OperaterAdmin(admin.ModelAdmin):
+  list_display = ('id','firstname','lastname','phone','email','title','password','operater_type')
+@admin.register(Lead)
+class LeadAdmin(admin.ModelAdmin):
+  list_display = ('id','firstname','lastname','phone','email','comment','date','time')
+@admin.register(LeadAddress)
+class LeadAddressAdmin(admin.ModelAdmin):
+  list_display = ('id','customer_id','street_number','unit_number','addressline1','addressline2','city','state','postal_code','country_name')
+@admin.register(Establishment)
+class EstablishmentAdmin(admin.ModelAdmin):
+  list_display = ('id','customer_id','address_id','name','squarefeet')
+@admin.register(Service_Order)
+class Service_OrderAdmin(admin.ModelAdmin):
+  list_display = ('id','User_id','service_id','order_status','operater_id','service_datetime','service_fee','total_amount','requested_service_datetime','Establishment_id')
+@admin.register(Address)
+class AddressAdmin(admin.ModelAdmin):
+  list_display = ('id','customer_id','street_number','unit_number','addressline1','addressline2','city','state','postal_code','country_name')
+@admin.register(Promotion_Category)
+class Promotion_CategoryAdmin(admin.ModelAdmin):
+  list_display = ('id','promotion_id','service_type_id')
+@admin.register(Promotion)
+class PromotionAdmin(admin.ModelAdmin):
+  list_display = ('id','name','description','discount_rate','start_date','end_date')
 

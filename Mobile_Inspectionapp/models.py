@@ -28,15 +28,7 @@ class LeadAddress(models.Model):
     
     def __str__(self):
         return "{} -{}".format(self.customer) 
-      
-class Service(models.Model):
-    name=models.CharField(max_length=500,null=False)
-    description=models.TextField(max_length=1000,null=False)
-    service_image=models.ImageField(upload_to="products_images/",blank=True,null=True)
-      
-    def __str__(self):
-        return "{} -{}".format(self.name) 
-    
+        
 class ServiceAgreement(models.Model):
     service_agreement_form=models.FileField(upload_to="agreement_form/",blank=True,null=True)
     signature=models.FileField(upload_to="signature/",blank=True,null=True)
@@ -44,32 +36,44 @@ class ServiceAgreement(models.Model):
     date=models.DateField()
     time=models.TimeField()
 
+    def __str__(self):
+        return "{}".format(self.customer_id) 
 class ServiceType(models.Model):
-    service_id = models.ForeignKey(Service, on_delete=models.CASCADE)
+    service_agreement_id=models.ForeignKey(ServiceAgreement, on_delete=models.CASCADE)
     service_type_name=models.CharField(max_length=500,null=False)
     price = models.FloatField()
-    service_agreement_id=models.ForeignKey(ServiceAgreement, on_delete=models.CASCADE)
     
-    def __str__(self):
-        return "{} -{}".format(self.service_id) 
     
-
-class Promotion_Category(models.Model):
-    service_type_id= models.ForeignKey(ServiceType, on_delete=models.CASCADE)
+    # def __str__(self):
+    #     return "{} -{}".format(self.service_type_name) 
     
-    def __str__(self):
-        return "{} -{}".format(self.service_type) 
+class Service(models.Model):
+    service_type_id=models.ForeignKey(ServiceType, on_delete=models.CASCADE)
+    name=models.CharField(max_length=500,null=False)
+    description=models.TextField(max_length=1000,null=False)
+    service_image=models.ImageField(upload_to="products_images/",blank=True,null=True)
+      
+    # def __str__(self):
+    #     return "{} ".format(self.service_type_id) 
     
 class Promotion(models.Model):
-    promotion_id= models.ForeignKey(Promotion_Category, on_delete=models.CASCADE)
     name=models.CharField(max_length=500,null=False)
     description=models.TextField(max_length=1000,null=False)
     discount_rate = models.FloatField()
     start_date=models.DateField()
     end_date=models.DateField()
     
-    def __str__(self):
-        return "{} -{}".format(self.name) 
+    # def __str__(self):
+    #     return "{} -{}".format(self.name)     
+
+class Promotion_Category(models.Model):
+    promotion_id= models.ForeignKey(Promotion, on_delete=models.CASCADE)
+    service_type_id= models.ForeignKey(ServiceType, on_delete=models.CASCADE)
+    
+    # def __str__(self):
+    #     return "{} -{}".format(self.service_type_id) 
+    
+
     
 class Operater(models.Model):
     firstname=models.CharField(max_length=500,null=False)
@@ -150,8 +154,6 @@ class UserManager(BaseUserManager):
             Last_name=Last_name,
            )
         user.is_admin = True
-    
-        
         user.save(using=self._db)
         return user
 

@@ -3,7 +3,6 @@ from .serializer import *
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework import generics
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from Mobile_Inspectionapp.renderer import UserRenderer
 from django.http import Http404
@@ -13,8 +12,6 @@ from django.urls import reverse
 from distutils import errors
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-
-
 
 
 #Creating tokens manually
@@ -41,13 +38,36 @@ class UserLoginView(APIView):
         if serializer.is_valid(raise_exception=True):
             email=serializer.data.get('email')
             password=serializer.data.get('password')
+            print(email,password)
             user=authenticate(email=email,password=password)
+            print(user)
             if user is not None:
-             token= get_tokens_for_user(user)
-             return Response({'token':token,'msg':'Login successful','status':'status.HTTP_200_OK'})
-
+              token= get_tokens_for_user(user)
+              print(token)
+              return Response({'token':token,'msg':'Login successful','status':'status.HTTP_200_OK'})
             else:
-             return Response({'errors':{'non_field_errors':['email or password is not valid']},'status':'status.HTTP_404_NOT_FOUND'})
+              return Response({'msg':'Please Enter Valid email or password'},status=status.HTTP_404_NOT_FOUND)
+          
+class ServiceAgreementView(APIView):
+   
+    def get(self, request, format=None):
+        service = ServiceAgreement.objects.all().order_by('id')
+        serializer = ServiceAgreementSerializer(service, many=True)
+        return Response(serializer.data)
+          
+class ServiceView(APIView):
+   
+    def get(self, request, format=None):
+        service = Service.objects.all().order_by('id')
+        serializer = ServiceSerializer(service, many=True)
+        return Response(serializer.data)
+    
+class ServiceTypeView(APIView):
+   
+    def get(self, request, format=None):
+        service = ServiceType.objects.all().order_by('id')
+        serializer = ServiceTypeSerializer(service, many=True)
+        return Response(serializer.data)
             
 class LeadView(APIView): 
    renderer_classes=[UserRenderer]
@@ -68,35 +88,8 @@ class LeadAddressView(APIView):
       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)             
 
 
-class ServiceView(APIView):
-   
-    def get(self, request, format=None):
-        service = Service.objects.all().order_by('id')
-        serializer = ServiceSerializer(service, many=True)
-        return Response(serializer.data)
+
     
-    
-    def post(self, request, format=None):
-        serializer = ServiceSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message':'Successfully added'})
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-class ServiceTypeView(APIView):
-   
-    def get(self, request, format=None):
-        service = ServiceType.objects.all().order_by('id')
-        serializer = ServiceTypeSerializer(service, many=True)
-        return Response(serializer.data)
-    
-    
-    def post(self, request, format=None):
-        serializer = ServiceTypeSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message':'Successfully added'})
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class PromotionCategoryView(APIView):
    
