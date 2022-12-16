@@ -3,51 +3,106 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q 
 from .models import *
 from django.core.exceptions import ValidationError
+from rest_framework.validators import UniqueValidator
 from uuid import uuid4
 
-class UserRegistrationSerializer(serializers.ModelSerializer):
-    password2=serializers.CharField(style={'input_type':'password'},write_only=True)
+class UserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+        )
+    First_name = serializers.CharField(max_length=15)
+    Last_name = serializers.CharField(max_length=15)
+    title = serializers.CharField(max_length=15)
+    mobile = serializers.CharField(max_length=15)
+    attribute_name = serializers.CharField(max_length=15)
+    password = serializers.CharField(max_length=15)
     class Meta:
-        model=User
-
-        fields=['id','email','password','password2','First_name','Last_name','title','mobile','attribute_name']
-
-        extra_kwargs={
-        
-            'First_name': {'error_messages': {'required': "Firstname is required",'blank':'please provide a firstname'}},
-            'Last_name': {'error_messages': {'required': "Lastname is required",'blank':'please provide a lastname'}},
-            'email': {'error_messages': {'required': "email is required",'blank':'please provide a email'}},
-            'title': {'error_messages': {'required': "title is required",'blank':'please provide a title'}},
-            'mobile': {'error_messages': {'required': "mobile Number is required",'blank':'please provide a mobile number'}},
-            'attribute_name': {'error_messages': {'required': "attribue_name is required",'blank':'please provide a attribute_name'}},
-            'password': {'error_messages': {'required': "password is required",'blank':'please Enter a password'}},
-            'password2': {'error_messages': {'required': "confirm password is required",'blank':'Confirm password could not blank'}},
-          }
-
-        #validating password and confirm password
-    def validate(self, attrs):
-      password=attrs.get('password')
-      password2=attrs.get('password2')
-      if password!=password2:
-        raise serializers.ValidationError('password and confirm password doesnot match')
-
-      return attrs
-
+        model = User
+        fields = fields = ['email', 'First_name','Last_name','title','mobile','attribute_name', 'password']
+   
+    
     def create(self, validated_data):
-      return User.objects.create_user(** validated_data)
+        user = User.objects.create(
+        First_name=validated_data['First_name'],
+        Last_name=validated_data['Last_name'],
+        email=validated_data['email'],
+        title=validated_data['title'],
+        mobile=validated_data['mobile'],
+        attribute_name=validated_data['attribute_name'],
+        password=validated_data['password'],
+        )
+        return user
+    
 
 class UserLoginSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(max_length=250)
-    class Meta:
-     model=User
-     fields=['email','password']
-     extra_kwargs={
-        'email': {'error_messages': {'required': "email is required",'blank':'please provide a email'}},
-        'password': {'error_messages': {'required': "password is required",'blank':'please Enter a email'}}
-        
-    }
+    # to accept either username or email
+    email = serializers.EmailField()
+    password = serializers.CharField()
+    token = serializers.CharField(required=False, read_only=True)
 
- 
+    def validate(self, data):
+        # user,email,password validator
+        email = data.get("email", None)
+        password = data.get("password", None)
+        if not email and not password:
+            raise ValidationError("Details not entered.")
+        user = None
+        # if the email has been passed
+        if '@' in email:
+            user = User.objects.filter(
+                Q(email=email) &
+                Q(password=password)
+                ).distinct()
+            if not user.exists():
+                raise ValidationError("User credentials are not correct.")
+            user = User.objects.get(email=email)
+        if user.ifLogged:
+            raise ValidationError("User already logged in.")
+        user.ifLogged = True
+        data['token'] = uuid4()
+        user.token = data['token']
+        user.save()
+        return data
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'password',
+            'token',
+        )
+
+        read_only_fields = (
+            'token',
+        )
+class UserLogoutSerializer(serializers.ModelSerializer):
+    token = serializers.CharField()
+    status = serializers.CharField(required=False, read_only=True)
+
+    def validate(self, data):
+        token = data.get("token", None)
+        print(token)
+        user = None
+        try:
+            user = User.objects.get(token=token)
+            if not user.ifLogged:
+                raise ValidationError("User is not logged in.")
+        except Exception as e:
+            raise ValidationError(str(e))
+        user.ifLogged = False
+        user.token = ""
+        user.save()
+        data['status'] = "User is logged out."
+        return data
+
+    class Meta:
+        model = User
+        fields = (
+            'token',
+            'status',
+        )
+
 
 class LeadSerializer(serializers.ModelSerializer):
      class Meta:
