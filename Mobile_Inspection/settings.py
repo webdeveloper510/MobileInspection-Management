@@ -43,8 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Mobile_Inspectionapp',
     'corsheaders',
-    'rest_framework',
-    'rest_framework_simplejwt'
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
