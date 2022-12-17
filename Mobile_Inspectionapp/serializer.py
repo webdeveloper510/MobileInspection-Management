@@ -19,21 +19,19 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=15)
     class Meta:
         model = User
-        fields = fields = ['email', 'First_name','Last_name','title','mobile','attribute_name', 'password']
+        fields  = ['email', 'First_name','Last_name','title','mobile','attribute_name', 'password']
+        
+        extra_kwargs={
+        'email': {'error_messages': {'required': "email is required",'blank':'please provide a email'}},
+        'First_name': {'error_messages': {'required': "firstname is required",'blank':'please Enter a firstname'}},
+        'Last_name': {'error_messages': {'required': "lastname is required",'blank':'please Enter a lastname'}},
+        'mobile': {'error_messages': {'required': "mobile is required",'blank':'please Enter a mobile'}},
+        'password': {'error_messages': {'required': "password is required",'blank':'please Enter a password'}} 
+    }
    
     
-    def create(self, validated_data):
-        user = User.objects.create(
-        First_name=validated_data['First_name'],
-        Last_name=validated_data['Last_name'],
-        email=validated_data['email'],
-        title=validated_data['title'],
-        mobile=validated_data['mobile'],
-        attribute_name=validated_data['attribute_name'],
-        password=validated_data['password'],
-        )
-        return user
-    
+    def create(self, validate_data):
+     return User.objects.create(**validate_data)
 
 class UserLoginSerializer(serializers.ModelSerializer):
     # to accept either username or email

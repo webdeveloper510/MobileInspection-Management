@@ -5,18 +5,24 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from Mobile_Inspectionapp.renderer import UserRenderer
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import action
 
-
-#Creating tokens manually
 class RegisterView(APIView):
-  renderer_classes = [UserRenderer]
+  @csrf_exempt 
+  @action(detail=False, methods=['post'])
   def post(self, request, format=None):
-    serializer = UserSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    user = serializer.save()
-    user.is_active = False
-    user.save()
-    return Response({"success":"you have registred successfully "},status=status.HTTP_201_CREATED)
+      email=request.data.get('email')
+      First_name=request.data.get('First_name')
+      Last_name=request.data.get('Last_name')
+      title=request.data.get('title')
+      mobile=request.data.get('mobile')
+      attribute_name=request.data.get('attribute_name')
+      password=request.data.get('password')
+      registered_data=User.objects.create(email=email,First_name=First_name,Last_name=Last_name,title=title,mobile=mobile,attribute_name=attribute_name,password=password)
+      serializer = UserSerializer(data=registered_data)
+      registered_data.save()
+      return Response({"email":email,"First_name":First_name,"Last_name":Last_name,"title":title,"mobile":mobile,"attribute_name":attribute_name})
 
 class UserLoginView(APIView):
   renderer_classes = [UserRenderer]

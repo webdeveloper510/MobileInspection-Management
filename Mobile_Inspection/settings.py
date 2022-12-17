@@ -86,12 +86,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
 
-],
-    'DEFAULT_PERMISSION_CLASSES': [
-       'rest_framework.permissions.IsAuthenticated',
-       'rest_framework.permissions.IsAdminUser',
-
-       ]
+]
 }
 
 DATABASES = {
@@ -159,8 +154,8 @@ PASSWORD_RESET_TIMEOUT=900          # 900 Sec = 15 Min
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-    "http://intuitiveagilesolution.com:8000",
-    "http://54.201.14.154:8000",
+#     "http://intuitiveagilesolution.com:8000",
+#     "http://54.201.14.154:8000"
 ]
 
 STATIC_URL = 'static/'
