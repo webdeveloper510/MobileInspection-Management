@@ -2,20 +2,27 @@ from django.db import models
 from django.contrib.auth.models import *
 from django.contrib.auth.models import BaseUserManager,AbstractBaseUser
 from django.contrib.auth.models import *
+from .validater import *
 
 class User(models.Model):
-    First_name = models.CharField(max_length=255, null=False)
-    Last_name = models.CharField(max_length=255, null=False)
-    email = models.EmailField(max_length=255, null=False)
+    First_name = models.CharField(max_length=255, null=False,blank= False)
+    Last_name = models.CharField(max_length=255, null=False,blank= False)
+    email = models.EmailField(max_length=255, null=False,blank= False)
     title=models.CharField(max_length=255, null=False)
-    mobile=models.CharField(max_length=255, null=False)
+    mobile=models.CharField(max_length=255, null=False,blank= False)
     attribute_name=models.CharField(max_length=255, null=False)
-    password = models.CharField(max_length=50)
+    password = models.CharField(max_length=50,blank= False)
     ifLogged = models.BooleanField(default=False)
     token = models.CharField(max_length=500, null=True, default="")
 
     def __str__(self):
         return "{}".format( self.email) 
+    
+    def clean(self):
+        if self.First_name == None:
+            raise ValidationError({
+                'website': "Joe must have a website"
+            })
   
   
      

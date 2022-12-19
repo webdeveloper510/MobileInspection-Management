@@ -1,37 +1,39 @@
 from rest_framework import serializers
+from drf_tweaks.serializers import ModelSerializer
 from django.core.exceptions import ValidationError
 from django.db.models import Q 
 from .models import *
 from django.core.exceptions import ValidationError
 from rest_framework.validators import UniqueValidator
 from uuid import uuid4
+from .validater import *
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.Serializer):
     email = serializers.EmailField(
-        required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
         )
     First_name = serializers.CharField(max_length=15)
     Last_name = serializers.CharField(max_length=15)
-    title = serializers.CharField(max_length=15)
+    title = serializers.CharField(max_length=15,required=False)
     mobile = serializers.CharField(max_length=15)
-    attribute_name = serializers.CharField(max_length=15)
+    attribute_name = serializers.CharField(max_length=15,required=False)
     password = serializers.CharField(max_length=15)
     class Meta:
         model = User
         fields  = ['email', 'First_name','Last_name','title','mobile','attribute_name', 'password']
         
-        extra_kwargs={
-        'email': {'error_messages': {'required': "email is required",'blank':'please provide a email'}},
-        'First_name': {'error_messages': {'required': "firstname is required",'blank':'please Enter a firstname'}},
-        'Last_name': {'error_messages': {'required': "lastname is required",'blank':'please Enter a lastname'}},
-        'mobile': {'error_messages': {'required': "mobile is required",'blank':'please Enter a mobile'}},
-        'password': {'error_messages': {'required': "password is required",'blank':'please Enter a password'}} 
-    }
-   
+        # extra_kwargs={
+        
+        #     'First_name': {'error_messages': {'required': "Firstname is required",'blank':'please provide a firstname'}},
+        #     'Last_name': {'error_messages': {'required': "Lastname is required",'blank':'please provide a lastname'}},
+        #     'email': {'error_messages': {'required': "email is required",'blank':'please provide a email'}},
+        #     'password': {'error_messages': {'required': "password is required",'blank':'please Enter a email'}},
+        #           }
+        
     
     def create(self, validate_data):
      return User.objects.create(**validate_data)
+ 
 
 class UserLoginSerializer(serializers.ModelSerializer):
     # to accept either username or email

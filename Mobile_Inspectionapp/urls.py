@@ -4,6 +4,7 @@ from Mobile_Inspectionapp.views import *
 urlpatterns = [
     path('login/',UserLoginView.as_view(),name='login'),
     path('register/',RegisterView.as_view(),name='register'),
+    path('logout/',UserLoginView.as_view(),name='logout'),
     path('serviceagreement/',ServiceAgreementView.as_view(),name='service_agreement'),
     path('servicetype/',ServiceTypeView.as_view(),name='servicetype'),
     path('service/',ServiceView.as_view(),name='service'),
