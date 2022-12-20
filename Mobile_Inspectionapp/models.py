@@ -3,28 +3,23 @@ from django.contrib.auth.models import *
 from django.contrib.auth.models import BaseUserManager,AbstractBaseUser
 from django.contrib.auth.models import *
 from .validater import *
+from phonenumber_field.modelfields import PhoneNumberField
+
 
 class User(models.Model):
-    First_name = models.CharField(max_length=255, null=False,blank= False)
-    Last_name = models.CharField(max_length=255, null=False,blank= False)
-    email = models.EmailField(max_length=255, null=False,blank= False)
-    title=models.CharField(max_length=255, null=False)
-    mobile=models.CharField(max_length=255, null=False,blank= False)
-    attribute_name=models.CharField(max_length=255, null=False)
-    password = models.CharField(max_length=50,blank= False)
+    First_name = models.CharField(max_length=255, null=False,blank= True,default="")
+    Last_name = models.CharField(max_length=255, null=False,blank= True,default="")
+    email = models.EmailField(max_length=255, null=False,blank= True,default="")
+    title=models.CharField(max_length=255, null=False,default="")
+    mobile=PhoneNumberField(null=False, blank=False, unique=True)
+    attribute_name=models.CharField(max_length=255, null=False,default="")
+    password = models.CharField(max_length=50,blank= True,null=False)
     ifLogged = models.BooleanField(default=False)
     token = models.CharField(max_length=500, null=True, default="")
 
     def __str__(self):
         return "{}".format( self.email) 
     
-    def clean(self):
-        if self.First_name == None:
-            raise ValidationError({
-                'website': "Joe must have a website"
-            })
-  
-  
      
 class Lead(models.Model):
     firstname=models.CharField(max_length=500,null=False)
@@ -53,9 +48,9 @@ class LeadAddress(models.Model):
         return "{} -{}".format(self.customer) 
         
 class ServiceAgreement(models.Model):
-    service_agreement_form=models.FileField(upload_to="agreement_form/",blank=True,null=True)
-    signature=models.FileField(upload_to="signature/",blank=True,null=True)
     customer_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    service_agreement_form=models.FileField(upload_to="agreement_form/",blank=True,null=False)
+    signature=models.FileField(upload_to="signature/",blank=True,null=False)
     date=models.DateField()
     time=models.TimeField()
 
@@ -74,7 +69,7 @@ class Service(models.Model):
     service_type_id=models.ForeignKey(ServiceType, on_delete=models.CASCADE)
     name=models.CharField(max_length=500,null=False)
     description=models.TextField(max_length=1000,null=False)
-    service_image=models.ImageField(upload_to="products_images/",blank=True,null=True)
+    service_image=models.ImageField(upload_to="products_images/",blank=True,null=False)
       
     # def __str__(self):
     #     return "{} ".format(self.service_type_id) 

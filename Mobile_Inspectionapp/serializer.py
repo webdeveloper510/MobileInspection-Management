@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from rest_framework.validators import UniqueValidator
 from uuid import uuid4
 from .validater import *
+from phonenumber_field.serializerfields import PhoneNumberField
 
 class UserSerializer(serializers.Serializer):
     email = serializers.EmailField(
@@ -15,7 +16,7 @@ class UserSerializer(serializers.Serializer):
     First_name = serializers.CharField(max_length=15)
     Last_name = serializers.CharField(max_length=15)
     title = serializers.CharField(max_length=15,required=False)
-    mobile = serializers.CharField(max_length=15)
+    mobile =  PhoneNumberField()
     attribute_name = serializers.CharField(max_length=15,required=False)
     password = serializers.CharField(max_length=15)
     class Meta:
