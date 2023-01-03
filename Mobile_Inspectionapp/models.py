@@ -1,24 +1,30 @@
 from django.db import models
 from django.contrib.auth.models import *
-from django.contrib.auth.models import BaseUserManager,AbstractBaseUser
-from django.contrib.auth.models import *
 from .validater import *
 from phonenumber_field.modelfields import PhoneNumberField
+from django.contrib.auth.hashers import make_password
+# from django_cryptography.fields import encrypt
 
 
 class User(models.Model):
-    First_name = models.CharField(max_length=255, null=False,blank= True,default="")
-    Last_name = models.CharField(max_length=255, null=False,blank= True,default="")
-    email = models.EmailField(max_length=255, null=False,blank= True,default="")
-    title=models.CharField(max_length=255, null=False,default="")
-    mobile=PhoneNumberField(null=False, blank=False, unique=True)
-    attribute_name=models.CharField(max_length=255, null=False,default="")
-    password = models.CharField(max_length=50,blank= True,null=False)
+    First_name = models.CharField(max_length=50, null=False,default="")
+    Last_name = models.CharField(max_length=50, null=False,default="")
+    email = models.EmailField(max_length=30, null=False,default="",unique=True)
+    title=models.CharField(max_length=50, null=False,default="")
+    mobile=PhoneNumberField(null=False, unique=True)
+    attribute_name=models.CharField(max_length=50, null=False,default="")
+    password = models.CharField(max_length=250,null=False)
     ifLogged = models.BooleanField(default=False)
     token = models.CharField(max_length=500, null=True, default="")
 
     def __str__(self):
         return "{}".format( self.email) 
+    
+    # def save(self, *args, **kwargs):
+         
+    #     self.password = make_password(self.password)
+    #     super(User,self).save(*args, **kwargs)
+    
     
      
 class Lead(models.Model):
@@ -45,7 +51,7 @@ class LeadAddress(models.Model):
     country_name=models.CharField(max_length=500,null=False)
     
     def __str__(self):
-        return "{} -{}".format(self.customer) 
+        return "{} -{}".format(self.customer_id) 
         
 class ServiceAgreement(models.Model):
     customer_id = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -99,7 +105,7 @@ class Operater(models.Model):
     phone=models.CharField(max_length=500,null=False)
     email=models.EmailField()
     title=models.CharField(max_length=500,null=False)
-    password = models.CharField(max_length=50)
+    password =models.CharField(max_length=50)
     operater_type=models.CharField(max_length=500,null=False)
 
 class Address(models.Model):
@@ -139,3 +145,19 @@ class Service_Order(models.Model):
     def __str__(self):
         return "{} -{}".format(self.User_id)     
 
+class Contact(models.Model):
+    firstname=models.CharField(max_length=500,null=False)
+    lastname=models.CharField(max_length=500,null=False)
+    email=models.EmailField()
+    phone=PhoneNumberField(null=False)
+    street_number=models.CharField(max_length=500,null=False)
+    address=models.CharField(max_length=500,null=False)
+    city=models.CharField(max_length=500,null=False)
+    state=models.CharField(max_length=500,null=False)
+    country=models.CharField(max_length=500,null=False)
+    zipcode=models.CharField(max_length=500,null=False)
+    
+class Cart(models.Model):
+    service_id = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

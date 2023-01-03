@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
 from pathlib import Path
 import os
 from datetime import timedelta
@@ -45,7 +44,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'phonenumber_field',
-    'phonenumbers'
+    'phonenumbers',
+    'rest_framework.authtoken'
 ]
 
 MIDDLEWARE = [
@@ -167,4 +167,11 @@ STATICFILES_DIRS = [
 MEDIA_ROOT = BASE_DIR /"static/media"
 MEDIA_URL = "/media/"
 
-
+PASSWORD_HASHERS = (
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptPasswordHasher',
+    'django.contrib.auth.hashers.SHA1PasswordHasher',
+    'django.contrib.auth.hashers.MD5PasswordHasher',
+    'django.contrib.auth.hashers.CryptPasswordHasher'
+)

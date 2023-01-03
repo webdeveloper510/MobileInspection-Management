@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from drf_tweaks.serializers import ModelSerializer
 from django.core.exceptions import ValidationError
 from django.db.models import Q 
 from .models import *
@@ -8,36 +7,39 @@ from rest_framework.validators import UniqueValidator
 from uuid import uuid4
 from .validater import *
 from phonenumber_field.serializerfields import PhoneNumberField
+from django.contrib.auth.hashers import make_password
 
-class UserSerializer(serializers.Serializer):
+class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=[UniqueValidator(queryset=User.objects.all())],required=True
         )
-    First_name = serializers.CharField(max_length=15)
-    Last_name = serializers.CharField(max_length=15)
-    title = serializers.CharField(max_length=15,required=False)
+    First_name = serializers.CharField(max_length=50,required=True)
+    Last_name = serializers.CharField(max_length=50,required=True)
+    title = serializers.CharField(max_length=50,required=False)
     mobile =  PhoneNumberField()
-    attribute_name = serializers.CharField(max_length=15,required=False)
-    password = serializers.CharField(max_length=15)
+    attribute_name = serializers.CharField(max_length=50,required=False)
+    password = serializers.CharField(max_length=250,required=True)
     class Meta:
         model = User
         fields  = ['email', 'First_name','Last_name','title','mobile','attribute_name', 'password']
-        
+       
         # extra_kwargs={
         
         #     'First_name': {'error_messages': {'required': "Firstname is required",'blank':'please provide a firstname'}},
         #     'Last_name': {'error_messages': {'required': "Lastname is required",'blank':'please provide a lastname'}},
         #     'email': {'error_messages': {'required': "email is required",'blank':'please provide a email'}},
-        #     'password': {'error_messages': {'required': "password is required",'blank':'please Enter a email'}},
+        #     'password': {'error_messages': {'required': "password is required",'blank':'please Enter a password'}},
+        #     'mobile': {'error_messages': {'required': "mobile is required",'blank':'please Enter a mobile'}},
         #           }
         
-    
+  
     def create(self, validate_data):
      return User.objects.create(**validate_data)
- 
+    
+   
 
 class UserLoginSerializer(serializers.ModelSerializer):
-    # to accept either username or email
+    
     email = serializers.EmailField()
     password = serializers.CharField()
     token = serializers.CharField(required=False, read_only=True)
@@ -77,32 +79,32 @@ class UserLoginSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'token',
         )
-class UserLogoutSerializer(serializers.ModelSerializer):
-    token = serializers.CharField()
-    status = serializers.CharField(required=False, read_only=True)
+# class UserLogoutSerializer(serializers.ModelSerializer):
+#     token = serializers.CharField()
+#     status = serializers.CharField(required=False, read_only=True)
 
-    def validate(self, data):
-        token = data.get("token", None)
-        print(token)
-        user = None
-        try:
-            user = User.objects.get(token=token)
-            if not user.ifLogged:
-                raise ValidationError("User is not logged in.")
-        except Exception as e:
-            raise ValidationError(str(e))
-        user.ifLogged = False
-        user.token = ""
-        user.save()
-        data['status'] = "User is logged out."
-        return data
+#     def validate(self, data):
+#         token = data.get("token", None)
+#         print(token)
+#         user = None
+#         try:
+#             user = User.objects.get(token=token)
+#             if not user.ifLogged:
+#                 raise ValidationError("User is not logged in.")
+#         except Exception as e:
+#             raise ValidationError(str(e))
+#         user.ifLogged = False
+#         user.token = ""
+#         user.save()
+#         data['status'] = "User is logged out."
+#         return data
 
-    class Meta:
-        model = User
-        fields = (
-            'token',
-            'status',
-        )
+#     class Meta:
+#         model = User
+#         fields = (
+#             'token',
+#             'status',
+#         )
 
 
 class LeadSerializer(serializers.ModelSerializer):
@@ -163,6 +165,22 @@ class ServiceTypeSerializer(serializers.ModelSerializer):
            
      def create(self, validate_data):
          return ServiceType.objects.create(**validate_data)
+
+class ContactSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Contact
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Contact.objects.create(**validate_data)
+     
+class CartSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Cart
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Cart.objects.create(**validate_data)
      
 class PromotionCategorySerializer(serializers.ModelSerializer):
      class Meta:
@@ -170,7 +188,9 @@ class PromotionCategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
            
      def create(self, validate_data):
-         return Promotion_Category.objects.create(**validate_data)
+         return Promotion_Category.objects.create(**validate_data)  
+     
+     
      
 class PromotionSerializer(serializers.ModelSerializer):
      class Meta:

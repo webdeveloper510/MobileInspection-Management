@@ -56,3 +56,10 @@ class Promotion_CategoryAdmin(admin.ModelAdmin):
 class PromotionAdmin(admin.ModelAdmin):
   list_display = ('id','name','description','discount_rate','start_date','end_date')
 
+@admin.register(Contact)
+class ContactAdmin(admin.ModelAdmin):
+  list_display = ('id','firstname','lastname','email','phone','street_number','address','city','state','country','zipcode')
+
+@admin.register(Cart)
+class CartAdmin(admin.ModelAdmin):
+  list_display = ('id','service_id','created_at','updated_at')
