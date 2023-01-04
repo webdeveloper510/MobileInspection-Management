@@ -3,6 +3,7 @@ from django.contrib.auth.models import *
 from .validater import *
 from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib.auth.hashers import make_password
+from django.core.validators import MinValueValidator,MaxValueValidator
 # from django_cryptography.fields import encrypt
 
 
@@ -155,7 +156,7 @@ class Contact(models.Model):
     city=models.CharField(max_length=500,null=False)
     state=models.CharField(max_length=500,null=False)
     country=models.CharField(max_length=500,null=False)
-    zipcode=models.CharField(max_length=500,null=False)
+    zipcode=models.IntegerField(null=False)
     
 class Cart(models.Model):
     service_id = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, blank=True)

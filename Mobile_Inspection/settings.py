@@ -96,7 +96,7 @@ DATABASES = {
     'ENGINE': 'django.db.backends.mysql', 
     'NAME': 'Mobile_Inspection_Management',
     'USER': 'root',
-    'PASSWORD': '',
+    'PASSWORD': '',#Admin@123
     'HOST': 'localhost', # Or an IP Address that your DB is hosted on
     'PORT': '3306',
     'OPTIONS': {

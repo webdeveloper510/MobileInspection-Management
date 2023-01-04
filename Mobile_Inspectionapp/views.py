@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import action
 from django.contrib.auth.hashers import make_password
 from .validater import *
+from django.http import JsonResponse
 
 
 
@@ -20,8 +21,8 @@ class RegisterView(APIView):
     if serializer.is_valid(raise_exception=True):
         user=serializer.save()
         data={'First_name':serializer.data['First_name'],'Last_name':serializer.data['Last_name'],'email':serializer.data['email'],'title':str(serializer.data['title']),'mobile':serializer.data['mobile'],'attribute_name':str(serializer.data['attribute_name'])}
-        return Response({'message':'Registeration Successfull','status':'200','data':data})
-    return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({'message':'Registeration Successfull','status':'200','data':data})
+    return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
 class UserLoginView(APIView):
   renderer_classes = [UserRenderer]
@@ -35,8 +36,8 @@ class UserLoginView(APIView):
             userdetail=User.objects.filter(email=email).values('First_name','Last_name','email','mobile','title','attribute_name')
             print("print--- detail",userdetail[0]['First_name'])
             data={'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
-            return Response({'message':'Login Successfull','status':'200','data':data})
-        return Response(serializer_class.errors, status=HTTP_400_BAD_REQUEST)
+            return JsonResponse({'message':'Login Successfull','status':'200','data':data})
+        return JsonResponse(serializer_class.errors, status=HTTP_400_BAD_REQUEST)
     
 # class Logout(APIView):
 #     queryset = User.objects.all()
@@ -53,21 +54,21 @@ class ServiceAgreementView(APIView):
     def get(self, request, format=None):
         service = ServiceAgreement.objects.all().order_by('id')
         serializer = ServiceAgreementSerializer(service, many=True)
-        return Response(serializer.data)
+        return JsonResponse(serializer.data)
           
 class ServiceView(APIView):
    
     def get(self, request, format=None):
         service = Service.objects.all().order_by('id')
         serializer = ServiceSerializer(service, many=True)
-        return Response(serializer.data)
+        return JsonResponse(serializer.data)
     
 class ServiceTypeView(APIView):
    
     def get(self, request, format=None):
         service = ServiceType.objects.all().order_by('id')
         serializer = ServiceTypeSerializer(service, many=True)
-        return Response(serializer.data)
+        return JsonResponse(serializer.data)
             
             
 class ContactView(APIView):
@@ -75,16 +76,17 @@ class ContactView(APIView):
     serializer=ContactSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
         user=serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+        data={'firstname':serializer.data['firstname'],'lastname':serializer.data['lastname'],'email':serializer.data['email'],'phone':serializer.data['phone'],'street_number':serializer.data['street_number'],'address':serializer.data['address'],'city':serializer.data['city'],'state':serializer.data['state'],'country':serializer.data['country'],'zipcode':serializer.data['zipcode']}
+        return JsonResponse({'message':'Thanks For Your Query','status':'200','data':data})
+    return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 class CartView(APIView):
  def post(self,request,format=None):
     serializer=CartSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
         user=serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)            
+        return JsonResponse(serializer.data)
+    return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)            
             
             
 # class LeadView(APIView): 
