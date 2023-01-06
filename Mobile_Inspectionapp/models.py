@@ -156,7 +156,7 @@ class Contact(models.Model):
     city=models.CharField(max_length=500,null=False)
     state=models.CharField(max_length=500,null=False)
     country=models.CharField(max_length=500,null=False)
-    zipcode=models.IntegerField(null=False)
+    zipcode=models.IntegerField()
     
 class Cart(models.Model):
     service_id = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, blank=True)

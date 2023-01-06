@@ -82,21 +82,22 @@ class ServiceAgreementView(APIView):
     def get(self, request, format=None):
         service = ServiceAgreement.objects.all().order_by('id')
         serializer = ServiceAgreementSerializer(service, many=True)
-        return JsonResponse(serializer.data)
+        print(serializer)
+        return Response(serializer.data)
           
 class ServiceView(APIView):
    
     def get(self, request, format=None):
         service = Service.objects.all().order_by('id')
         serializer = ServiceSerializer(service, many=True)
-        return JsonResponse(serializer.data)
+        return Response(serializer.data)
     
 class ServiceTypeView(APIView):
    
     def get(self, request, format=None):
         service = ServiceType.objects.all().order_by('id')
         serializer = ServiceTypeSerializer(service, many=True)
-        return JsonResponse(serializer.data)
+        return Response(serializer.data)
             
             
 class ContactView(APIView):
