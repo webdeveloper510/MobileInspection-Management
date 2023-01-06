@@ -8,6 +8,7 @@ from uuid import uuid4
 from .validater import *
 from phonenumber_field.serializerfields import PhoneNumberField
 from django.contrib.auth.hashers import make_password
+from rest_framework.response import Response
 
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
@@ -33,9 +34,21 @@ class UserSerializer(serializers.ModelSerializer):
         #           }
         
   
+ 
+    # def validate(self, attrs):
+    #     email = attrs.get('email')
+    #     print(email)
+    #     if User.objects.filter(email=email).exists():
+    #         user = User.objects.get(email = email)
+    #         data = {
+    #             'message':'User Already Exists',
+    #             'status':"400",
+    #             "data":{}
+    #         }
+    #     return Response(238923895)
+    
     def create(self, validate_data):
      return User.objects.create(**validate_data)
-    
    
 
 class UserLoginSerializer(serializers.ModelSerializer):

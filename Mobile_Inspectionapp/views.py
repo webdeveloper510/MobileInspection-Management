@@ -13,17 +13,45 @@ from django.http import JsonResponse
 
 
 
-class RegisterView(APIView):
- renderer_classes=[UserRenderer]
+# class RegisterView(APIView):
+#  renderer_classes=[UserRenderer]
  
- def post(self,request,format=None):
-    serializer=UserSerializer(data=request.data)
-    if serializer.is_valid(raise_exception=True):
-        user=serializer.save()
-        data={'First_name':serializer.data['First_name'],'Last_name':serializer.data['Last_name'],'email':serializer.data['email'],'title':str(serializer.data['title']),'mobile':serializer.data['mobile'],'attribute_name':str(serializer.data['attribute_name'])}
-        return JsonResponse({'message':'Registeration Successfull','status':'200','data':data})
-    return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+#  def post(self,request,format=None):
+#     serializer=UserSerializer(data=request.data)
     
+#     if serializer.is_valid(raise_exception=True):
+#         user=serializer.save()
+#         print(serializer.data)
+#         data={'First_name':serializer.data['First_name'],'Last_name':serializer.data['Last_name'],'email':serializer.data['email'],'title':str(serializer.data['title']),'mobile':serializer.data['mobile'],'attribute_name':str(serializer.data['attribute_name'])}
+#         return JsonResponse({'message':'Registeration Successfull','status':'200','data':data})
+#     # return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+class RegisterView(APIView):
+    @csrf_exempt 
+    @action(detail=False, methods=['post'])
+    def post(self, request, format=None):
+     First_name=request.data.get('First_name')
+     Last_name=request.data.get('Last_name')
+     email=request.data.get('email')
+     title=request.data.get('title')
+     mobile=request.data.get('mobile')
+     attribute_name=request.data.get('attribute_name')
+     password=make_password(request.data.get('password'))
+     print(password)
+     if User.objects.filter(email=email).exists():
+         user = User.objects.get(email = email)
+         data = {
+                'message':'Email is Already Exists',
+                'status':"400",
+                "data":{}
+            }
+         return Response(data)
+     else:
+         registred_data=User.objects.create(First_name=First_name,Last_name=Last_name,email=email,title=title,mobile=mobile,attribute_name=attribute_name,password=password)
+         serializer = UserSerializer(data=registred_data)
+         registred_data.save()
+         dict_data={"Firstname":First_name,"Lastname":Last_name,"email":email,"title":title,"mobile":mobile,"attribute_name":attribute_name}
+         return JsonResponse({'message':'Registeration Successfull','status':'200','data':dict_data})
+
 class UserLoginView(APIView):
   renderer_classes = [UserRenderer]
   serializer_class = UserLoginSerializer
