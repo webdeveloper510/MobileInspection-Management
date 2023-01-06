@@ -152,11 +152,14 @@ class Contact(models.Model):
     email=models.EmailField()
     phone=PhoneNumberField(null=False)
     street_number=models.CharField(max_length=500,null=False)
+    unit_number=models.CharField(max_length=500,null=False)
     address=models.CharField(max_length=500,null=False)
+    address1=models.CharField(max_length=500,null=False)
     city=models.CharField(max_length=500,null=False)
     state=models.CharField(max_length=500,null=False)
     country=models.CharField(max_length=500,null=False)
     zipcode=models.IntegerField()
+    comment=models.TextField(max_length=500)
     
 class Cart(models.Model):
     service_id = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, blank=True)

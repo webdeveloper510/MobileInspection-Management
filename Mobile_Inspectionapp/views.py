@@ -7,9 +7,12 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from Mobile_Inspectionapp.renderer import UserRenderer
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import action
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import check_password
 from .validater import *
 from django.http import JsonResponse
+import json
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import login
 
 
 
@@ -35,7 +38,7 @@ class RegisterView(APIView):
      title=request.data.get('title')
      mobile=request.data.get('mobile')
      attribute_name=request.data.get('attribute_name')
-     password=make_password(request.data.get('password'))
+     password=request.data.get('password')
      print(password)
      if User.objects.filter(email=email).exists():
          user = User.objects.get(email = email)
@@ -66,6 +69,42 @@ class UserLoginView(APIView):
             data={'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
             return JsonResponse({'message':'Login Successfull','status':'200','data':data})
         return JsonResponse(serializer_class.errors, status=HTTP_400_BAD_REQUEST)
+
+# class UserLoginView(APIView): 
+#     @csrf_exempt 
+#     @action(detail=False, methods=['post'])
+#     def post(self, request, format=None):  
+#         data = {}
+#         reqBody = json.loads(request.body)
+#         email = reqBody['email']
+#         print(email)
+#         password = reqBody['password']
+#         try:
+#             Account = User.objects.get(email=email)
+#         except BaseException as e:
+#             raise ValidationError({"400": f'{str(e)}'})
+
+#         token = Token.objects.get_or_create(user=Account)[0].key
+#         print(token)
+#         if not check_password(password, Account.password):
+#             raise ValidationError({"message": "Incorrect Login credentials"})
+
+#         if Account:
+#             if Account.is_active:
+#                 print(request.user)
+#                 login(request, Account)
+#                 data["message"] = "user logged in"
+#                 data["email_address"] = Account.email
+
+#                 Res = {"data": data, "token": token}
+
+#                 return Response(Res)
+
+#             else:
+#                 raise ValidationError({"400": f'Account not active'})
+
+#         else:
+#             raise ValidationError({"400": f'Account doesnt exist'})
     
 # class Logout(APIView):
 #     queryset = User.objects.all()
@@ -105,8 +144,8 @@ class ContactView(APIView):
     serializer=ContactSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
         user=serializer.save()
-        data={'firstname':serializer.data['firstname'],'lastname':serializer.data['lastname'],'email':serializer.data['email'],'phone':serializer.data['phone'],'street_number':serializer.data['street_number'],'address':serializer.data['address'],'city':serializer.data['city'],'state':serializer.data['state'],'country':serializer.data['country'],'zipcode':serializer.data['zipcode']}
-        return JsonResponse({'message':'Thanks For Your Query','status':'200','data':data})
+        # data={'firstname':serializer.data['firstname'],'lastname':serializer.data['lastname'],'email':serializer.data['email'],'phone':serializer.data['phone'],'street_number':serializer.data['street_number'],'unit_number':serializer.data['unit_number'],'address':serializer.data['address'],'address1':serializer.data['address1'],'city':serializer.data['city'],'state':serializer.data['state'],'country':serializer.data['country'],'zipcode':serializer.data['zipcode']}
+        return JsonResponse({'message':'Thanks for contacting us','status':'200'})
     return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 class CartView(APIView):
