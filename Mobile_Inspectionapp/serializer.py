@@ -9,6 +9,7 @@ from .validater import *
 from phonenumber_field.serializerfields import PhoneNumberField
 from django.contrib.auth.hashers import make_password
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
@@ -92,32 +93,16 @@ class UserLoginSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'token',
         )
-# class UserLogoutSerializer(serializers.ModelSerializer):
-#     token = serializers.CharField()
-#     status = serializers.CharField(required=False, read_only=True)
-
-#     def validate(self, data):
-#         token = data.get("token", None)
-#         print(token)
-#         user = None
+# class LogoutSerializer(serializers.Serializer):
+#     refresh = serializers.CharField()
+#     def validate(self, attrs):
+#         self.token = attrs['refresh']
+#         return attrs
+#     def save(self, **kwargs):
 #         try:
-#             user = User.objects.get(token=token)
-#             if not user.ifLogged:
-#                 raise ValidationError("User is not logged in.")
-#         except Exception as e:
-#             raise ValidationError(str(e))
-#         user.ifLogged = False
-#         user.token = ""
-#         user.save()
-#         data['status'] = "User is logged out."
-#         return data
-
-#     class Meta:
-#         model = User
-#         fields = (
-#             'token',
-#             'status',
-#         )
+#             RefreshToken(self.token).blacklist()
+#         except TokenError:
+#             self.fail('bad_token')
 
 
 class LeadSerializer(serializers.ModelSerializer):

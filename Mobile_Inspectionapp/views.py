@@ -12,9 +12,19 @@ from .validater import *
 from django.http import JsonResponse
 import json
 from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import login
+from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login, logout
+from django.utils import timezone
+from rest_framework.permissions import IsAuthenticated
 
-
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
 
 # class RegisterView(APIView):
 #  renderer_classes=[UserRenderer]
@@ -52,6 +62,7 @@ class RegisterView(APIView):
          registred_data=User.objects.create(First_name=First_name,Last_name=Last_name,email=email,title=title,mobile=mobile,attribute_name=attribute_name,password=password)
          serializer = UserSerializer(data=registred_data)
          registred_data.save()
+        #  token = get_tokens_for_user(registred_data)
          dict_data={"Firstname":First_name,"Lastname":Last_name,"email":email,"title":title,"mobile":mobile,"attribute_name":attribute_name}
          return JsonResponse({'message':'Registeration Successfull','status':'200','data':dict_data})
 
@@ -60,6 +71,7 @@ class UserLoginView(APIView):
   serializer_class = UserLoginSerializer
   def post(self, request, *args, **kwargs):
         serializer_class = UserLoginSerializer(data=request.data)
+        
         if serializer_class.is_valid(raise_exception=True):
             print('data--',serializer_class.data['token'])
             email=serializer_class.data['email']
@@ -70,73 +82,91 @@ class UserLoginView(APIView):
             return JsonResponse({'message':'Login Successfull','status':'200','data':data})
         return JsonResponse(serializer_class.errors, status=HTTP_400_BAD_REQUEST)
 
-# class UserLoginView(APIView): 
-#     @csrf_exempt 
-#     @action(detail=False, methods=['post'])
-#     def post(self, request, format=None):  
-#         data = {}
-#         reqBody = json.loads(request.body)
-#         email = reqBody['email']
-#         print(email)
-#         password = reqBody['password']
-#         try:
-#             Account = User.objects.get(email=email)
-#         except BaseException as e:
-#             raise ValidationError({"400": f'{str(e)}'})
-
-#         token = Token.objects.get_or_create(user=Account)[0].key
-#         print(token)
-#         if not check_password(password, Account.password):
-#             raise ValidationError({"message": "Incorrect Login credentials"})
-
-#         if Account:
-#             if Account.is_active:
+# class UserLoginView(APIView):
+#     renderer_classes = [UserRenderer]
+#     def post(self, request):
+#         email=request.data.get('email')
+#         password=request.data.get('password')
+#         user=authenticate(email=email,password=password)
+#         Account = User.objects.get(email=email)
+        
+#         if Account.is_active:
 #                 print(request.user)
 #                 login(request, Account)
-#                 data["message"] = "user logged in"
-#                 data["email_address"] = Account.email
+#                 data={
+#                 'message':'User already logged in.',
+#                 'status':"400",
+#                 "data":{}
+#                 }
+#                 return Response(data)
+#         else :
+#             token= get_tokens_for_user(user)
+#             user.last_login = timezone.now()
+#             user.save(update_fields=['last_login'])
+#             return Response({'token':token,'msg':'Login successful','status':'status.HTTP_200_OK'})
 
-#                 Res = {"data": data, "token": token}
 
-#                 return Response(Res)
-
-#             else:
-#                 raise ValidationError({"400": f'Account not active'})
-
-#         else:
-#             raise ValidationError({"400": f'Account doesnt exist'})
     
-# class Logout(APIView):
-#     queryset = User.objects.all()
-#     serializer_class = UserLogoutSerializer
-
-#     def post(self, request, *args, **kwargs):
-#         serializer_class = UserLogoutSerializer(data=request.data)
-#         if serializer_class.is_valid(raise_exception=True):
-#             return Response(serializer_class.data, status=HTTP_200_OK)
-#         return Response(serializer_class.errors, status=HTTP_400_BAD_REQUEST) 
+class LogoutUser(APIView):
+  renderer_classes = [UserRenderer]
+  permission_classes=[IsAuthenticated]
+  def post(self, request, format=None):
+    #serializer = LogoutUserSerializer(data=request.data)
+    #serializer.is_valid(raise_exception=True)
+    return Response({'msg':'Logout Successfully'},status=status.HTTP_200_OK)
     
 class ServiceAgreementView(APIView):
    
     def get(self, request, format=None):
         service = ServiceAgreement.objects.all().order_by('id')
         serializer = ServiceAgreementSerializer(service, many=True)
-        print(serializer)
-        return Response(serializer.data)
+        array=[]
+        for x in serializer.data:
+            id=(x['id'])
+            service_agreement_form=(x['service_agreement_form'])
+            signature=(x['signature'])
+            date=(x['date'])
+            time=(x['time'])
+            customer_id=(x['customer_id'])
+            dict_data={"id":str(id),"service_agreement_form":service_agreement_form,"signature":signature,"date":date,"time":time,"customer_id":str(customer_id)}
+            array.append(dict_data)
+            print(array)
+        return JsonResponse({"code":"200","message":"Success","data":array})
+          
           
 class ServiceView(APIView):
    
     def get(self, request, format=None):
         service = Service.objects.all().order_by('id')
         serializer = ServiceSerializer(service, many=True)
-        return Response(serializer.data)
+        array=[]
+        for x in serializer.data:
+            id=(x['id'])   
+            name=(x['name'])
+            description=(x['description'])
+            service_image=(x['service_image'])
+            service_type_id=(x['service_type_id'])
+            dict_data={"id":str(id),"name":name,"description":description,"service_image":service_image,"service_type_id":str(service_type_id)}
+            array.append(dict_data)
+            print(array)
+        return JsonResponse({"code":"200","message":"Success","data":array})   
+        
     
 class ServiceTypeView(APIView):
    
     def get(self, request, format=None):
         service = ServiceType.objects.all().order_by('id')
         serializer = ServiceTypeSerializer(service, many=True)
-        return Response(serializer.data)
+        array=[]
+        for x in serializer.data:
+            id=(x['id'])   
+            service_type_name=(x['service_type_name'])
+            price=(x['price'])
+            service_agreement_id=(x['service_agreement_id'])
+            dict_data={"id":str(id),"service_type_name":service_type_name,"price":str(price),"service_agreement_id":str(service_agreement_id)}
+            array.append(dict_data)
+            print(array)
+        return JsonResponse({"code":"200","message":"Success","data":array})  
             
             
 class ContactView(APIView):

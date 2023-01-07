@@ -15,8 +15,11 @@ class User(models.Model):
     mobile=PhoneNumberField(null=False, unique=True)
     attribute_name=models.CharField(max_length=50, null=False,default="")
     password = models.CharField(max_length=250,null=False)
+    is_active=models.BooleanField(default=True)
     ifLogged = models.BooleanField(default=False)
+    last_login=models.DateTimeField(auto_now_add=True)
     token = models.CharField(max_length=500, null=True, default="")
+    
 
     def __str__(self):
         return "{}".format( self.email) 
