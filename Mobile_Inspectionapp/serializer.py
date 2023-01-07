@@ -75,7 +75,8 @@ class UserLoginSerializer(serializers.ModelSerializer):
                 raise ValidationError("User credentials are not correct.")
             user = User.objects.get(email=email)
         if user.ifLogged:
-            raise ValidationError("User already logged in.")
+            data={"message":"User already logged in.","status":"400","data":{}}
+            raise serializers.ValidationError({'data':data})
         user.ifLogged = True
         data['token'] = uuid4()
         user.token = data['token']
@@ -93,16 +94,7 @@ class UserLoginSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'token',
         )
-# class LogoutSerializer(serializers.Serializer):
-#     refresh = serializers.CharField()
-#     def validate(self, attrs):
-#         self.token = attrs['refresh']
-#         return attrs
-#     def save(self, **kwargs):
-#         try:
-#             RefreshToken(self.token).blacklist()
-#         except TokenError:
-#             self.fail('bad_token')
+
 
 
 class LeadSerializer(serializers.ModelSerializer):

@@ -9,6 +9,6 @@ urlpatterns = [
     path('servicetype/',ServiceTypeView.as_view(),name='servicetype'),
     path('service/',ServiceView.as_view(),name='service'),
     path('cart/',CartView.as_view(),name='cart'),
-    path('logout/',LogoutUser.as_view(),name='logout'),
+    
     
 ]

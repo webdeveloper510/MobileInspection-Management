@@ -80,7 +80,7 @@ class UserLoginView(APIView):
             print("print--- detail",userdetail[0]['First_name'])
             data={'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
             return JsonResponse({'message':'Login Successfull','status':'200','data':data})
-        return JsonResponse(serializer_class.errors, status=HTTP_400_BAD_REQUEST)
+        return JsonResponse(serializer_class.errors, status=status.HTTP_200_OK)
 
 # class UserLoginView(APIView):
 #     renderer_classes = [UserRenderer]
@@ -106,14 +106,6 @@ class UserLoginView(APIView):
 #             return Response({'token':token,'msg':'Login successful','status':'status.HTTP_200_OK'})
 
 
-    
-class LogoutUser(APIView):
-  renderer_classes = [UserRenderer]
-  permission_classes=[IsAuthenticated]
-  def post(self, request, format=None):
-    #serializer = LogoutUserSerializer(data=request.data)
-    #serializer.is_valid(raise_exception=True)
-    return Response({'msg':'Logout Successfully'},status=status.HTTP_200_OK)
     
 class ServiceAgreementView(APIView):
    
