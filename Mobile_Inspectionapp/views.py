@@ -195,7 +195,7 @@ class ServiceListView(APIView):
         service_type_name=servicetype_detail[0]['service_type_name']
         service_type_description=servicetype_detail[0]['service_type_description']
         
-        data={"id":str(serializer.data['id']),"name":serializer.data['name'],"description":serializer.data['description'],"service_image":serializer.data['service_image'],'service_type_id':str(serializer.data['service_type_id']),"price":str(price),"service_type_name":service_type_name,"service_type_description":service_type_description}
+        data={"id":str(serializer.data['id']),"name":serializer.data['name'],"description":serializer.data['description'],"service_image":serializer.data['service_image'],"service_type_id":str(serializer.data['service_type_id']),"price":str(price),"service_type_name":service_type_name,"service_type_description":service_type_description}
         return JsonResponse({ "code": "200","message": "Success","data":data})
             
             
