@@ -87,9 +87,12 @@ class UserLoginView(APIView):
     @csrf_exempt 
     @action(detail=False, methods=['post'])
     def post(self, request, format=None):
-     email=request.data.get('email')
+     emaild=request.data.get('email')
      password=request.data.get('password')
-     user=User.objects.filter(email=email).values('ifLogged','email','password')
+     user=User.objects.filter(email=emaild).values('ifLogged','email','password')
+     if not User.objects.filter(email=emaild).values('email'):
+         
+        return Response({"message":"user does not exist"})
      print(user[0]['ifLogged'])
      print(user[0]['email'])
      print(user[0]['password'])
@@ -99,15 +102,17 @@ class UserLoginView(APIView):
      ifLogged=(user[0]['ifLogged'])
      print('if logged---',ifLogged)
     #  data={"message":"User already logged in.","status":"400","data":{}}
+    
      if ifLogged==True:
          print(123)
          return JsonResponse({"message":"User already logged in.","status":"400","data":{}})
-    #  elif User.objects.filter(email=email).exists():
-    #       user != User.objects.get(email = email)
+    #  if User.objects.get(email = emaildb):
+    #       print("hre")
+    #     #   user = User.objects.get(email != esssmail)
     #       return Response({"message":"user does not exist"})
      else:
-         user=User.objects.filter(email=email).update(ifLogged=True)
-         userdetail=User.objects.filter(email=email).values('First_name','Last_name','email','mobile','title','attribute_name')
+         user=User.objects.filter(email=emaild).update(ifLogged=True)
+         userdetail=User.objects.filter(email=emaild).values('First_name','Last_name','email','mobile','title','attribute_name')
          print("print--- detail",userdetail[0]['First_name'])
          data={'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
          return JsonResponse({'message':'Login Successfull','status':'200','data':data})
