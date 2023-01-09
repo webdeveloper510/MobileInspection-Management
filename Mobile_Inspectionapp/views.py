@@ -102,9 +102,9 @@ class UserLoginView(APIView):
      if ifLogged==True:
          print(123)
          return JsonResponse({"message":"User already logged in.","status":"400","data":{}})
-     elif User.objects.filter(email=email).exists():
-          user != User.objects.get(email = email)
-          return Response({"message":"user does not exist"})
+    #  elif User.objects.filter(email=email).exists():
+    #       user != User.objects.get(email = email)
+    #       return Response({"message":"user does not exist"})
      else:
          user=User.objects.filter(email=email).update(ifLogged=True)
          userdetail=User.objects.filter(email=email).values('First_name','Last_name','email','mobile','title','attribute_name')
