@@ -64,8 +64,9 @@ class ServiceAgreement(models.Model):
 
     def __str__(self):
         return "{}".format(self.customer_id) 
+    
 class ServiceType(models.Model):
-    service_agreement_id=models.ForeignKey(ServiceAgreement, on_delete=models.CASCADE,related_name='servicelist')
+    service_agreement_id=models.ForeignKey(ServiceAgreement, on_delete=models.CASCADE)
     service_type_name=models.CharField(max_length=500,null=False)
     service_type_description=models.TextField(max_length=1000,null=False)
     price = models.FloatField()

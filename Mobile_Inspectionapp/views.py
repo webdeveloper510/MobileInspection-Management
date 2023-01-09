@@ -168,9 +168,8 @@ class ServiceTypeView(APIView):
             id=(x['id'])   
             service_type_name=(x['service_type_name'])
             price=(x['price'])
-            service_agreement_id=(x['service_agreement_id'])
             service_type_description=(x['service_type_description'])
-            dict_data={"id":str(id),"service_type_name":service_type_name,"price":str(price),"service_agreement_id":str(service_agreement_id),"service Type Description":service_type_description}
+            dict_data={"id":str(id),"service_type_name":service_type_name,"price":str(price),"service_type_description":service_type_description,"service_agreement_id":""}
             
             array.append(dict_data)
             # print(array)
@@ -190,8 +189,13 @@ class ServiceListView(APIView):
         snippet = self.get_object(pk)
         serializer = ServiceSerializer(snippet)
         print(serializer.data['id'])
-        # serializer.data['id']
-        data={"id":str(serializer.data['id']),"name":serializer.data['name'],"description":serializer.data['description'],"service image":serializer.data['service_image'],'service_type_id':str(serializer.data['service_type_id'])}
+        service_type_id=serializer.data['service_type_id']
+        servicetype_detail=ServiceType.objects.filter(id=service_type_id).values('price','service_type_name','service_type_description')
+        price=servicetype_detail[0]['price']
+        service_type_name=servicetype_detail[0]['service_type_name']
+        service_type_description=servicetype_detail[0]['service_type_description']
+        
+        data={"id":str(serializer.data['id']),"name":serializer.data['name'],"description":serializer.data['description'],"service_image":serializer.data['service_image'],'service_type_id':str(serializer.data['service_type_id']),"price":str(price),"service_type_name":service_type_name,"service_type_description":service_type_description}
         return JsonResponse({ "code": "200","message": "Success","data":data})
             
             

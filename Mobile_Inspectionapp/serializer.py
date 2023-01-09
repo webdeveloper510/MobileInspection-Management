@@ -155,7 +155,7 @@ class ServiceTypeSerializer(serializers.ModelSerializer):
     #  servicelist = ServiceSerializer(many=True, read_only=True)
      class Meta:
         model= ServiceType
-        fields = ['id','service_agreement_id','service_type_name','service_type_description','price']
+        fields = '__all__'
            
      def create(self, validate_data):
          return ServiceType.objects.create(**validate_data)
