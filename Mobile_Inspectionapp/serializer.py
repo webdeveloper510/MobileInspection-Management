@@ -10,7 +10,8 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from django.contrib.auth.hashers import make_password
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
-
+import json
+from django.http import JsonResponse
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all())],required=True
@@ -52,6 +53,7 @@ class UserSerializer(serializers.ModelSerializer):
      return User.objects.create(**validate_data)
    
 
+
 class UserLoginSerializer(serializers.ModelSerializer):
     
     email = serializers.EmailField()
@@ -69,19 +71,20 @@ class UserLoginSerializer(serializers.ModelSerializer):
         if '@' in email:
             user = User.objects.filter(
                 Q(email=email) &
-                Q(password=password)
+                 Q(password=password)
                 ).distinct()
             if not user.exists():
                 raise ValidationError("User credentials are not correct.")
             user = User.objects.get(email=email)
         if user.ifLogged:
             data={"message":"User already logged in.","status":"400","data":{}}
-            raise serializers.ValidationError({'data':data})
+            raise serializers.ValidationError({"data":data})
         user.ifLogged = True
         data['token'] = uuid4()
         user.token = data['token']
         user.save()
         return data
+
 
     class Meta:
         model = User

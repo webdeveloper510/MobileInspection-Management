@@ -66,44 +66,48 @@ class RegisterView(APIView):
          dict_data={"Firstname":First_name,"Lastname":Last_name,"email":email,"title":title,"mobile":mobile,"attribute_name":attribute_name}
          return JsonResponse({'message':'Registeration Successfull','status':'200','data':dict_data})
 
-class UserLoginView(APIView):
-  renderer_classes = [UserRenderer]
-  serializer_class = UserLoginSerializer
-  def post(self, request, *args, **kwargs):
-        serializer_class = UserLoginSerializer(data=request.data)
-        
-        if serializer_class.is_valid(raise_exception=True):
-            print('data--',serializer_class.data['token'])
-            email=serializer_class.data['email']
-            print(email)
-            userdetail=User.objects.filter(email=email).values('First_name','Last_name','email','mobile','title','attribute_name')
-            print("print--- detail",userdetail[0]['First_name'])
-            data={'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
-            return JsonResponse({'message':'Login Successfull','status':'200','data':data})
-        return JsonResponse(serializer_class.errors, status=status.HTTP_200_OK)
-
 # class UserLoginView(APIView):
-#     renderer_classes = [UserRenderer]
-#     def post(self, request):
-#         email=request.data.get('email')
-#         password=request.data.get('password')
-#         user=authenticate(email=email,password=password)
-#         Account = User.objects.get(email=email)
+#   renderer_classes = [UserRenderer]
+#   serializer_class = UserLoginSerializer
+#   def post(self, request, *args, **kwargs):
+#         serializer_class = UserLoginSerializer(data=request.data)
         
-#         if Account.is_active:
-#                 print(request.user)
-#                 login(request, Account)
-#                 data={
-#                 'message':'User already logged in.',
-#                 'status':"400",
-#                 "data":{}
-#                 }
-#                 return Response(data)
-#         else :
-#             token= get_tokens_for_user(user)
-#             user.last_login = timezone.now()
-#             user.save(update_fields=['last_login'])
-#             return Response({'token':token,'msg':'Login successful','status':'status.HTTP_200_OK'})
+#         if serializer_class.is_valid(raise_exception=True):
+#             print('data--',serializer_class.data['token'])
+#             email=serializer_class.data['email']
+#             print(email)
+#             userdetail=User.objects.filter(email=email).values('First_name','Last_name','email','mobile','title','attribute_name')
+#             print("print--- detail",userdetail[0]['First_name'])
+#             data={'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
+#             return JsonResponse({'message':'Login Successfull','status':'200','data':data})
+#         return JsonResponse(serializer_class.errors, status=status.HTTP_200_OK)
+
+class UserLoginView(APIView): 
+    @csrf_exempt 
+    @action(detail=False, methods=['post'])
+    def post(self, request, format=None):
+     email=request.data.get('email')
+     password=request.data.get('password')
+     user=User.objects.filter(email=email).values('ifLogged')
+     print(user[0]['ifLogged'])
+     ifLogged=(user[0]['ifLogged'])
+     print('ghjkl',ifLogged)
+    #  data={"message":"User already logged in.","status":"400","data":{}}
+     if ifLogged==True:
+         print(123)
+         return JsonResponse({"message":"User already logged in.","status":"400","data":{}})
+     else:
+         user=User.objects.filter(email=email).update(ifLogged=True)
+         userdetail=User.objects.filter(email=email).values('First_name','Last_name','email','mobile','title','attribute_name')
+         print("print--- detail",userdetail[0]['First_name'])
+         data={'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
+         return JsonResponse({'message':'Login Successfull','status':'200','data':data})
+            
+            
+        
+        
+        
+    
 
 
     
