@@ -8,6 +8,7 @@ urlpatterns = [
     path('serviceagreement/',ServiceAgreementView.as_view(),name='service_agreement'),
     path('servicetype/',ServiceTypeView.as_view(),name='servicetype'),
     path('service/',ServiceView.as_view(),name='service'),
+    path('service/<int:pk>/',ServiceListView.as_view(),name='serviceid'),
     path('cart/',CartView.as_view(),name='cart'),
     
     

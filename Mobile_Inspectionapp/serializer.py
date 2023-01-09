@@ -152,14 +152,15 @@ class ServiceAgreementSerializer(serializers.ModelSerializer):
          return ServiceAgreement.objects.create(**validate_data)
      
 class ServiceTypeSerializer(serializers.ModelSerializer):
+    #  servicelist = ServiceSerializer(many=True, read_only=True)
      class Meta:
         model= ServiceType
-        fields = '__all__'
+        fields = ['id','service_agreement_id','service_type_name','service_type_description','price']
            
      def create(self, validate_data):
          return ServiceType.objects.create(**validate_data)
 
-class ContactSerializer(serializers.ModelSerializer):
+class ContactSerializer(serializers.HyperlinkedModelSerializer):
      class Meta:
         model= Contact
         fields = '__all__'

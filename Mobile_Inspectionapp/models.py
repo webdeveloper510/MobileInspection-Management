@@ -15,9 +15,7 @@ class User(models.Model):
     mobile=PhoneNumberField(null=False, unique=True)
     attribute_name=models.CharField(max_length=50, null=False,default="")
     password = models.CharField(max_length=250,null=False)
-    is_active=models.BooleanField(default=True)
     ifLogged  = models.BooleanField(default=False)
-    last_login=models.DateTimeField(auto_now_add=True)
     token = models.CharField(max_length=500, null=True, default="")
     
 
@@ -67,8 +65,9 @@ class ServiceAgreement(models.Model):
     def __str__(self):
         return "{}".format(self.customer_id) 
 class ServiceType(models.Model):
-    service_agreement_id=models.ForeignKey(ServiceAgreement, on_delete=models.CASCADE)
+    service_agreement_id=models.ForeignKey(ServiceAgreement, on_delete=models.CASCADE,related_name='servicelist')
     service_type_name=models.CharField(max_length=500,null=False)
+    service_type_description=models.TextField(max_length=1000,null=False)
     price = models.FloatField()
     
     

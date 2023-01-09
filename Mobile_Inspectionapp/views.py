@@ -18,6 +18,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import authenticate, login, logout
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
+from django.http import Http404
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -88,14 +89,22 @@ class UserLoginView(APIView):
     def post(self, request, format=None):
      email=request.data.get('email')
      password=request.data.get('password')
-     user=User.objects.filter(email=email).values('ifLogged')
+     user=User.objects.filter(email=email).values('ifLogged','email','password')
      print(user[0]['ifLogged'])
+     print(user[0]['email'])
+     print(user[0]['password'])
+     emaildb=user[0]['email']
+     print(emaildb)
+     passworddb=user[0]['password']
      ifLogged=(user[0]['ifLogged'])
-     print('ghjkl',ifLogged)
+     print('if logged---',ifLogged)
     #  data={"message":"User already logged in.","status":"400","data":{}}
      if ifLogged==True:
          print(123)
          return JsonResponse({"message":"User already logged in.","status":"400","data":{}})
+     elif User.objects.filter(email=email).exists():
+          user != User.objects.get(email = email)
+          return Response({"message":"user does not exist"})
      else:
          user=User.objects.filter(email=email).update(ifLogged=True)
          userdetail=User.objects.filter(email=email).values('First_name','Last_name','email','mobile','title','attribute_name')
@@ -154,15 +163,36 @@ class ServiceTypeView(APIView):
         service = ServiceType.objects.all().order_by('id')
         serializer = ServiceTypeSerializer(service, many=True)
         array=[]
+        array1=[]
         for x in serializer.data:
             id=(x['id'])   
             service_type_name=(x['service_type_name'])
             price=(x['price'])
             service_agreement_id=(x['service_agreement_id'])
-            dict_data={"id":str(id),"service_type_name":service_type_name,"price":str(price),"service_agreement_id":str(service_agreement_id)}
+            service_type_description=(x['service_type_description'])
+            dict_data={"id":str(id),"service_type_name":service_type_name,"price":str(price),"service_agreement_id":str(service_agreement_id),"service Type Description":service_type_description}
+            
             array.append(dict_data)
-            print(array)
+            # print(array)
         return JsonResponse({"code":"200","message":"Success","data":array})  
+    
+
+class ServiceListView(APIView):
+    
+    @csrf_exempt
+    def get_object(self, pk):
+        try:
+            return Service.objects.get(pk=pk)
+        except Service.DoesNotExist:
+            raise Http404  
+        
+    def get(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        serializer = ServiceSerializer(snippet)
+        print(serializer.data['id'])
+        # serializer.data['id']
+        data={"id":str(serializer.data['id']),"name":serializer.data['name'],"description":serializer.data['description'],"service image":serializer.data['service_image'],'service_type_id':str(serializer.data['service_type_id'])}
+        return JsonResponse({ "code": "200","message": "Success","data":data})
             
             
 class ContactView(APIView):
