@@ -10,6 +10,7 @@ urlpatterns = [
     path('service/',ServiceView.as_view(),name='service'),
     path('service/<int:pk>/',ServiceListView.as_view(),name='serviceid'),
     path('cart/',CartView.as_view(),name='cart'),
+    path('logout/',LogoutUser.as_view(),name='logout')
     
     
 ]

@@ -20,12 +20,12 @@ from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.http import Http404
 
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-    return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-    }
+# def get_tokens_for_user(user):
+#     refresh = RefreshToken.for_user(user)
+#     return {
+#         'refresh': str(refresh),
+#         'access': str(refresh.access_token),
+#     }
 
 # class RegisterView(APIView):
 #  renderer_classes=[UserRenderer]
@@ -59,6 +59,15 @@ class RegisterView(APIView):
                 "data":{}
             }
          return Response(data)
+     if User.objects.filter(mobile=mobile).exists():
+          data = {
+                'message':'mobile number is already exist',
+                'status':"400",
+                "data":{}
+            }
+          return Response(data)
+     if '@' not in email:
+         return Response({"message":"please enter valid email"})
      else:
          registred_data=User.objects.create(First_name=First_name,Last_name=Last_name,email=email,title=title,mobile=mobile,attribute_name=attribute_name,password=password)
          serializer = UserSerializer(data=registred_data)
@@ -87,43 +96,36 @@ class UserLoginView(APIView):
     @csrf_exempt 
     @action(detail=False, methods=['post'])
     def post(self, request, format=None):
-     emaild=request.data.get('email')
-     password=request.data.get('password')
-     user=User.objects.filter(email=emaild).values('ifLogged','email','password')
-     if not User.objects.filter(email=emaild).values('email'):
-         
-        return Response({"message":"user does not exist"})
-     print(user[0]['ifLogged'])
-     print(user[0]['email'])
-     print(user[0]['password'])
-     emaildb=user[0]['email']
-     print(emaildb)
-     passworddb=user[0]['password']
-     ifLogged=(user[0]['ifLogged'])
-     print('if logged---',ifLogged)
-    #  data={"message":"User already logged in.","status":"400","data":{}}
-    
-     if ifLogged==True:
-         print(123)
-         return JsonResponse({"message":"User already logged in.","status":"400","data":{}})
-    #  if User.objects.get(email = emaildb):
-    #       print("hre")
-    #     #   user = User.objects.get(email != esssmail)
-    #       return Response({"message":"user does not exist"})
-     else:
-         user=User.objects.filter(email=emaild).update(ifLogged=True)
-         userdetail=User.objects.filter(email=emaild).values('First_name','Last_name','email','mobile','title','attribute_name')
-         print("print--- detail",userdetail[0]['First_name'])
-         data={'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
-         return JsonResponse({'message':'Login Successfull','status':'200','data':data})
-            
-            
-        
-        
-        
-    
+        emaild=request.data.get('email')
+        password=request.data.get('password')
+        user=User.objects.filter(email=emaild).values('ifLogged','email','password','mobile')
 
+        if emaild=='' or password == '':
+            return JsonResponse({"message":"Email or PAssword Required","status":"400","data":{}})
+            
+        if not User.objects.filter(email=emaild , password = password).values('email', 'password') :
+            
+            return JsonResponse({"message":"wrong Email id or password","status":"400","data":{}})
+        
 
+        ifLogged=(user[0]['ifLogged'])
+
+        if ifLogged==True:
+            print(123)
+            return JsonResponse({"message":"User already logged in.","status":"400","data":{}})
+        else:
+            user=User.objects.filter(email=emaild).update(ifLogged=True)
+            userdetail=User.objects.filter(email=emaild).values('First_name','Last_name','email','mobile','title','attribute_name')
+            print("print--- detail",userdetail[0]['First_name'])
+            data={'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
+            return JsonResponse({'message':'Login Successfull','status':'200','data':data})
+        
+class LogoutUser(APIView):
+  renderer_classes = [UserRenderer]
+  def post(self, request, format=None):
+    #serializer = LogoutUserSerializer(data=request.data)
+    #serializer.is_valid(raise_exception=True)
+    return Response({'msg':'Logout Successfully'},status=status.HTTP_200_OK)
     
 class ServiceAgreementView(APIView):
    
@@ -204,14 +206,52 @@ class ServiceListView(APIView):
         return JsonResponse({ "code": "200","message": "Success","data":data})
             
             
-class ContactView(APIView):
- def post(self,request,format=None):
-    serializer=ContactSerializer(data=request.data)
-    if serializer.is_valid(raise_exception=True):
-        user=serializer.save()
-        # data={'firstname':serializer.data['firstname'],'lastname':serializer.data['lastname'],'email':serializer.data['email'],'phone':serializer.data['phone'],'street_number':serializer.data['street_number'],'unit_number':serializer.data['unit_number'],'address':serializer.data['address'],'address1':serializer.data['address1'],'city':serializer.data['city'],'state':serializer.data['state'],'country':serializer.data['country'],'zipcode':serializer.data['zipcode']}
-        return JsonResponse({'message':'Thanks for contacting us','status':'200'})
-    return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+# class ContactView(APIView):
+#  def post(self,request,format=None):
+#     serializer=ContactSerializer(data=request.data)
+#     if serializer.is_valid(raise_exception=True):
+#         user=serializer.save()
+#         # data={'firstname':serializer.data['firstname'],'lastname':serializer.data['lastname'],'email':serializer.data['email'],'phone':serializer.data['phone'],'street_number':serializer.data['street_number'],'unit_number':serializer.data['unit_number'],'address':serializer.data['address'],'address1':serializer.data['address1'],'city':serializer.data['city'],'state':serializer.data['state'],'country':serializer.data['country'],'zipcode':serializer.data['zipcode']}
+#         return JsonResponse({'message':'Thanks for contacting us','status':'200'})
+#     # return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+class ContactView(APIView):   
+    @csrf_exempt 
+    @action(detail=False, methods=['post'])
+    def post(self, request, format=None):
+        firstname=request.data.get('firstname')
+        Lastname=request.data.get('lastname')
+        email=request.data.get('email')
+        phone=request.data.get('phone')
+        street_number=request.data.get('street_number')
+        unit_number=request.data.get('unit_number')
+        address=request.data.get('address')
+        address1=request.data.get('address1')
+        city=request.data.get('city')
+        state=request.data.get('state')
+        country=request.data.get('country')
+        zipcode=request.data.get('zipcode')
+        comment=request.data.get('comment')
+        
+        if firstname=='':
+            return JsonResponse({"message":"Firstname is required","status":"400"})
+        if Lastname=='':
+            return JsonResponse({"message":"lastname is required","status":"400"})
+        if email=='':
+            return JsonResponse({"message":"email is required","status":"400"})
+        if phone=='':
+            return JsonResponse({"message":"phone number is required","status":"400"})
+        if str(zipcode) <6:
+            return JsonResponse({"message":" please Enter valid zip code","status":"400"})
+            
+        else:
+            contact_data=Contact.objects.create(firstname=firstname,lastname=Lastname,email=email,phone=phone,
+                                            street_number=street_number,unit_number=unit_number,address=address,address1=address1,city=city,
+                                            state=state,country=country,zipcode=zipcode,comment=comment)
+            
+            serializer = UserSerializer(data=contact_data)
+            contact_data.save()
+            return JsonResponse({"message":"thanks for contacting us","status":"200"})
 
 class CartView(APIView):
  def post(self,request,format=None):
