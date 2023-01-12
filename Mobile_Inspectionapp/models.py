@@ -57,29 +57,38 @@ class LeadAddress(models.Model):
         
 class ServiceAgreement(models.Model):
     customer_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    service_agreement_form=models.FileField(upload_to="agreement_form/",blank=True,null=False)
-    signature=models.FileField(upload_to="signature/",blank=True,null=False)
-    date=models.DateField()
-    time=models.TimeField()
+    service_agreement_form=models.FileField(upload_to="agreement_form/",blank=True,null=True)
+    signature=models.FileField(upload_to="signature/",blank=True,null=True)
+    date=models.DateField(null= True)
+    time=models.TimeField(null= True)
 
     def __str__(self):
         return "{}".format(self.customer_id) 
     
+SERVICE_TYPE_CHOICES = (
+           ("ONETIME", "OneTime"),
+           ("MEMBERSHIP", "Membership"),
+)
+    
 class ServiceType(models.Model):
     service_agreement_id=models.ForeignKey(ServiceAgreement, on_delete=models.CASCADE)
-    service_type_name=models.CharField(max_length=500,null=False)
-    service_type_description=models.TextField(max_length=1000,null=False)
-    price = models.FloatField()
+    service_type_name=models.CharField(max_length=500,choices=SERVICE_TYPE_CHOICES,default = 'ONETIME',null=False)
+    service_type_description=models.TextField(max_length=1000,null=True)
+    price = models.FloatField(null=True)
     
     
     # def __str__(self):
     #     return "{} -{}".format(self.service_type_name) 
+
     
 class Service(models.Model):
     service_type_id=models.ForeignKey(ServiceType, on_delete=models.CASCADE)
-    name=models.CharField(max_length=500,null=False)
-    description=models.TextField(max_length=1000,null=False)
-    service_image=models.ImageField(upload_to="products_images/",blank=True,null=False)
+    name=models.CharField(max_length=500,null=True)
+    description=models.TextField(max_length=1000,null=True)
+    
+class Service_Image(models.Model):
+    service_id=models.ForeignKey(Service, on_delete=models.CASCADE)
+    service_image=models.ImageField(upload_to="products_images/",blank=True,null=True)
       
     # def __str__(self):
     #     return "{} ".format(self.service_type_id) 
@@ -113,25 +122,29 @@ class Operater(models.Model):
     operater_type=models.CharField(max_length=500,null=False)
 
 class Address(models.Model):
-    customer_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    street_number=models.CharField(max_length=500,null=False)
     unit_number=models.CharField(max_length=500,null=False)
     addressline1=models.CharField(max_length=500,null=False)
-    addressline2=models.CharField(max_length=500,null=False)
     city=models.CharField(max_length=500,null=False)
     state=models.CharField(max_length=500,null=False)
     postal_code=models.CharField(max_length=500,null=False)
     country_name=models.CharField(max_length=500,null=False)
+
+class Customer_Address(models.Model):
+    customer_id= models.ForeignKey(User, on_delete=models.CASCADE)
+    address_id=models.ForeignKey(Address, on_delete=models.CASCADE)
+
+class Establishment_type(models.Model):
+    Establishment_type=models.CharField(max_length=250,null=False)
+    title=models.CharField(max_length=250,null=False)
     
 class Establishment(models.Model):
-    customer_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    address_id = models.ForeignKey(Address, on_delete=models.CASCADE)
-    name=models.CharField(max_length=250,null=False)
-    squarefeet=models.CharField(max_length=250,null=False)
+    customer_id = models.ForeignKey(User, on_delete=models.CASCADE ,null=True)
+    address_id = models.ForeignKey(Address, on_delete=models.CASCADE,null=True)
+    name=models.CharField(max_length=250,null=True)
+    establishment_type_id=models.ForeignKey(Establishment_type, on_delete=models.CASCADE,null=True)
+    
    
     
-    def __str__(self):
-        return "{} -{}".format(self.customer_id) 
 
       
 class Service_Order(models.Model):

@@ -142,6 +142,14 @@ class ServiceSerializer(serializers.ModelSerializer):
            
      def create(self, validate_data):
          return Service.objects.create(**validate_data)
+     
+class Service_ImageSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Service_Image
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Service_Image.objects.create(**validate_data)
 
 class ServiceAgreementSerializer(serializers.ModelSerializer):
      class Meta:
@@ -168,54 +176,48 @@ class ContactSerializer(serializers.HyperlinkedModelSerializer):
      def create(self, validate_data):
          return Contact.objects.create(**validate_data)
      
-class CartSerializer(serializers.ModelSerializer):
-     class Meta:
-        model= Cart
-        fields = '__all__'
+# class CartSerializer(serializers.ModelSerializer):
+#      class Meta:
+#         model= Cart
+#         fields = '__all__'
            
-     def create(self, validate_data):
-         return Cart.objects.create(**validate_data)
+#      def create(self, validate_data):
+#          return Cart.objects.create(**validate_data)
      
-class PromotionCategorySerializer(serializers.ModelSerializer):
-     class Meta:
-        model= Promotion_Category
-        fields = '__all__'
+# class PromotionCategorySerializer(serializers.ModelSerializer):
+#      class Meta:
+#         model= Promotion_Category
+#         fields = '__all__'
            
-     def create(self, validate_data):
-         return Promotion_Category.objects.create(**validate_data)  
+#      def create(self, validate_data):
+#          return Promotion_Category.objects.create(**validate_data)  
      
      
      
-class PromotionSerializer(serializers.ModelSerializer):
-     class Meta:
-        model= Promotion
-        fields = '__all__'
+# class PromotionSerializer(serializers.ModelSerializer):
+#      class Meta:
+#         model= Promotion
+#         fields = '__all__'
            
-     def create(self, validate_data):
-         return Promotion.objects.create(**validate_data)
+#      def create(self, validate_data):
+#          return Promotion.objects.create(**validate_data)
      
-class OperaterSerializer(serializers.ModelSerializer):
-     class Meta:
-        model= Operater
-        fields = '__all__'
+# class OperaterSerializer(serializers.ModelSerializer):
+#      class Meta:
+#         model= Operater
+#         fields = '__all__'
            
-     def create(self, validate_data):
-         return Operater.objects.create(**validate_data)
+#      def create(self, validate_data):
+#          return Operater.objects.create(**validate_data)
      
 class AddressSerializer(serializers.ModelSerializer):
      class Meta:
         model= Address
-        fields = ['customer_id','street_number','unit_number','addressline1','addressline2','city','state','postal_code','country_name']
-        extra_kwargs={
-            "customer_id":{"error_messages":{"required":"customer is required"}},
-            "street_number":{"error_messages":{"required":"street_number is required"}},
-            "unit_number":{"error_messages":{"required":"addressline1 is required"}},
-            "addressline2":{"error_messages":{"required":"addressline2 is required"}},
-            "city":{"error_messages":{"required":"city is required"}},
-            "state":{"error_messages":{"required":"state is required"}},
-            "postal_code":{"error_messages":{"required":"postal_code is required"}},
-            "country_name":{"error_messages":{"required":"country_name is required"}},
-        }
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Address.objects.create(**validate_data)
+     
 class EstablishmentSerializer(serializers.ModelSerializer):
      class Meta:
         model= Establishment

@@ -28,9 +28,12 @@ class ServiceAgreementAdmin(admin.ModelAdmin):
 @admin.register(ServiceType)
 class ServiceTypeAdmin(admin.ModelAdmin):
   list_display = ('id','service_agreement_id','service_type_name','price')
+@admin.register(Service_Image)
+class Service_ImageAdmin(admin.ModelAdmin):
+  list_display = ('id','service_id','service_image')
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-  list_display = ('id','service_type_id','name','description','service_image')
+  list_display = ('id','service_type_id','name','description')
 @admin.register(Operater)
 class OperaterAdmin(admin.ModelAdmin):
   list_display = ('id','firstname','lastname','phone','email','title','password','operater_type')
@@ -42,13 +45,16 @@ class LeadAddressAdmin(admin.ModelAdmin):
   list_display = ('id','customer_id','street_number','unit_number','addressline1','addressline2','city','state','postal_code','country_name')
 @admin.register(Establishment)
 class EstablishmentAdmin(admin.ModelAdmin):
-  list_display = ('id','customer_id','address_id','name','squarefeet')
+  list_display = ('id','customer_id','address_id','name','establishment_type_id')
+@admin.register(Establishment_type)
+class Establishment_typeAdmin(admin.ModelAdmin):
+  list_display = ('id','Establishment_type','title')
 @admin.register(Service_Order)
 class Service_OrderAdmin(admin.ModelAdmin):
   list_display = ('id','User_id','service_id','order_status','operater_id','service_datetime','service_fee','total_amount','requested_service_datetime','Establishment_id')
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
-  list_display = ('id','customer_id','street_number','unit_number','addressline1','addressline2','city','state','postal_code','country_name')
+  list_display = ('id','unit_number','addressline1','city','state','postal_code','country_name')
 @admin.register(Promotion_Category)
 class Promotion_CategoryAdmin(admin.ModelAdmin):
   list_display = ('id','promotion_id','service_type_id')

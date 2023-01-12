@@ -20,12 +20,12 @@ from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.http import Http404
 
-# def get_tokens_for_user(user):
-#     refresh = RefreshToken.for_user(user)
-#     return {
-#         'refresh': str(refresh),
-#         'access': str(refresh.access_token),
-#     }
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
 
 # class RegisterView(APIView):
 #  renderer_classes=[UserRenderer]
@@ -118,13 +118,12 @@ class UserLoginView(APIView):
             userdetail=User.objects.filter(email=emaild).values('First_name','Last_name','email','mobile','title','attribute_name')
             print("print--- detail",userdetail[0]['First_name'])
             data={'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
-            return JsonResponse({'message':'Login Successfull','status':'200','data':data})
+            token= get_tokens_for_user(user)
+            return JsonResponse({'token':token,'message':'Login Successfull','status':'200','data':data})
         
 class LogoutUser(APIView):
   renderer_classes = [UserRenderer]
   def post(self, request, format=None):
-    #serializer = LogoutUserSerializer(data=request.data)
-    #serializer.is_valid(raise_exception=True)
     return Response({'msg':'Logout Successfully'},status=status.HTTP_200_OK)
     
 class ServiceAgreementView(APIView):
@@ -196,16 +195,114 @@ class ServiceListView(APIView):
         snippet = self.get_object(pk)
         serializer = ServiceSerializer(snippet)
         print(serializer.data['id'])
+        serviceid=serializer.data['id']
         service_type_id=serializer.data['service_type_id']
-        servicetype_detail=ServiceType.objects.filter(id=service_type_id).values('price','service_type_name','service_type_description')
+        service = Service_Image.objects.all().order_by('id')
+        serializer2 = Service_ImageSerializer(service, many=True)
+        array1=[]
+        for x in serializer2.data:
+            service_image1=x['service_image']
+            print(service_image1)
+            array1.append(service_image1)
+        servicetype_detail=ServiceType.objects.filter(id=service_type_id).values('id','price','service_type_name','service_type_description')
         price=servicetype_detail[0]['price']
+        service_type_id=servicetype_detail[0]['id']
         service_type_name=servicetype_detail[0]['service_type_name']
+        array2=[]
+        servicedata={"service_type_id":str(service_type_id),"service_Type_name":service_type_name}
+        array2.append(servicedata)
         service_type_description=servicetype_detail[0]['service_type_description']
         
-        data={"id":str(serializer.data['id']),"name":serializer.data['name'],"description":serializer.data['description'],"service_image":serializer.data['service_image'],"service_type_id":str(serializer.data['service_type_id']),"price":str(price),"service_type_name":service_type_name,"service_type_description":service_type_description}
+        data={"id":str(serializer.data['id']),"name":serializer.data['name'],"description":serializer.data['description'],"service_image":array1,"price":str(price),"service_type":array2,"service_type_description":service_type_description}
         return JsonResponse({ "code": "200","message": "Success","data":data})
+    
+class CustomerInfo(APIView):
+    
+    @csrf_exempt
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise Http404
+    
+    @csrf_exempt
+    def get(self, request, pk, format=None):
+        user = self.get_object(pk)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
             
-            
+ 
+ 
+class AddressView(APIView):
+   
+    def get(self, request, format=None):
+        service = Address.objects.all().order_by('id')
+        serializer = AddressSerializer(service, many=True)
+        array=[]
+        for x in serializer.data:
+            id=(x['id']) 
+            unit_number=(x['unit_number']) 
+            addressline1=(x['addressline1']) 
+            city=(x['city']) 
+            state=(x['state']) 
+            postal_code=(x['postal_code']) 
+            country_name=(x['country_name']) 
+            data={"id":str(id),"unit_number":unit_number,"addressline1":addressline1,"city":city,"state":state,"postal_code":postal_code,"country_name":country_name}
+            array.append(data)
+        return JsonResponse({ "code": "200","message": "Success","data":array})
+    
+class EstablishmentView(APIView):
+    def get(self, request, format=None):
+        service = Establishment.objects.all().order_by('id')
+        serializer = EstablishmentSerializer(service, many=True)
+        array=[]
+        for x in serializer.data:
+          id=(x['id'])
+          customer_id= (x['customer_id'])
+          address_id=(x['address_id'])
+          name=(x['name'])
+          establishment_type_id=(x['establishment_type_id'])
+          data={"id":str(id),"customer_id":str(customer_id),"address_id":str(address_id),"name":name,"establishment_type_id":str(establishment_type_id)}
+          array.append(data)
+        return JsonResponse({ "code": "200","message": "Success","data":array})
+    
+
+# class EstablishmentRegisterView(APIView):
+#  renderer_classes=[UserRenderer]
+ 
+#  def post(self,request,format=None):
+#     serializer=EstablishmentSerializer(data=request.data)
+#     # print(serializer.data)
+#     if serializer.is_valid(raise_exception=True):
+#         user=serializer.save()
+#         # print(serializer.data)
+#         # data={'First_name':serializer.data['First_name'],'Last_name':serializer.data['Last_name'],'email':serializer.data['email'],'title':str(serializer.data['title']),'mobile':serializer.data['mobile'],'attribute_name':str(serializer.data['attribute_name'])}
+#         return JsonResponse({'message':'Establishment successfull','status':'200'})
+#     # return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+# class EstablishmentRegisterView(APIView):
+#     @csrf_exempt 
+#     @action(detail=False, methods=['post'])
+#     def post(self, request, format=None):
+#         customer_id=request.customer_id
+#         address_id=request.data.get('address_id')
+#         name=request.data.get('name')
+#         establishment_type_id=request.data.get('establishment_type_id')
+#         if customer_id=='':
+#             return JsonResponse({"message":"customer_id is required","status":"400"})
+#         if address_id=='':
+#             return JsonResponse({"message":"address_id is required","status":"400"})
+#         if name=='':
+#             return JsonResponse({"message":"name is required","status":"400"})
+#         if establishment_type_id=='':
+#             return JsonResponse({"message":"establishment_type_id is required","status":"400"})
+#         else:
+#             establishment_data=Establishment.objects.create(customer_id=customer_id,address_id=address_id,name=name,establishment_type_id=establishment_type_id)
+#             serializer = EstablishmentSerializer(data=establishment_data)
+#             establishment_data.save()
+#             data={"customer_id":customer_id,"address_id":address_id,"name":name,"establishment_type_id":establishment_type_id}
+#             return JsonResponse({ "code": "200","message": "Success","data":data})
+    
 # class ContactView(APIView):
 #  def post(self,request,format=None):
 #     serializer=ContactSerializer(data=request.data)
@@ -253,60 +350,11 @@ class ContactView(APIView):
             contact_data.save()
             return JsonResponse({"message":"thanks for contacting us","status":"200"})
 
-class CartView(APIView):
- def post(self,request,format=None):
-    serializer=CartSerializer(data=request.data)
-    if serializer.is_valid(raise_exception=True):
-        user=serializer.save()
-        return JsonResponse(serializer.data)
-    return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)            
+# class CartView(APIView):
+#  def post(self,request,format=None):
+#     serializer=CartSerializer(data=request.data)
+#     if serializer.is_valid(raise_exception=True):
+#         user=serializer.save()
+#         return JsonResponse(serializer.data)
+#     return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)            
             
-            
-# class LeadView(APIView): 
-#    renderer_classes=[UserRenderer]
-#    def post(self, request, format=None):
-#       serializer=LeadSerializer(data=request.data)
-#       if serializer.is_valid(raise_exception=True):
-#             serializer.save()
-#             return Response({"message":"sucess"})
-#       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
-  
-# class LeadAddressView(APIView): 
-#    renderer_classes=[UserRenderer]
-#    def post(self, request, format=None):
-#       serializer=LeadAddressSerializer(data=request.data)
-#       if serializer.is_valid(raise_exception=True):
-#             serializer.save()
-#             return Response({"message":"sucess"})
-#       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)             
-
-    
-# class PromotionCategoryView(APIView):
-   
-#     def get(self, request, format=None):
-#         service = Promotion_Category.objects.all().order_by('id')
-#         serializer = PromotionCategorySerializer(service, many=True)
-#         return Response(serializer.data)
-    
-    
-#     def post(self, request, format=None):
-#         serializer = PromotionCategorySerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({'message':'Successfully added'})
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-# class PromotionView(APIView):
-   
-#     def get(self, request, format=None):
-#         service = Promotion.objects.all().order_by('id')
-#         serializer = PromotionSerializer(service, many=True)
-#         return Response(serializer.data)
-    
-    
-#     def post(self, request, format=None):
-#         serializer = PromotionSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({'message':'Successfully added'})
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
