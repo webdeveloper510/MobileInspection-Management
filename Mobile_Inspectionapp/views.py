@@ -155,8 +155,11 @@ class ServiceView(APIView):
             id=(x['id'])   
             name=(x['name'])
             description=(x['description'])
-            service_image=(x['service_image'])
             service_type_id=(x['service_type_id'])
+            service = Service_Image.objects.filter(service_id=id).values('service_image')
+            print('id---',service[0]['service_image'])
+            service_image=service[0]['service_image']
+             
             dict_data={"id":str(id),"name":name,"description":description,"service_image":service_image,"service_type_id":str(service_type_id)}
             array.append(dict_data)
             print(array)
@@ -175,6 +178,7 @@ class ServiceTypeView(APIView):
             service_type_name=(x['service_type_name'])
             price=(x['price'])
             service_type_description=(x['service_type_description'])
+            
             dict_data={"id":str(id),"service_type_name":service_type_name,"price":str(price),"service_type_description":service_type_description,"service_agreement_id":""}
             
             array.append(dict_data)
@@ -201,9 +205,10 @@ class ServiceListView(APIView):
         serializer2 = Service_ImageSerializer(service, many=True)
         array1=[]
         for x in serializer2.data:
-            service_image1=x['service_image']
-            print(service_image1)
-            array1.append(service_image1)
+            if serializer.data['id']==x['service_id']:
+                service_image1=x['service_image']
+                print(service_image1)
+                array1.append(service_image1)
         servicetype_detail=ServiceType.objects.filter(id=service_type_id).values('id','price','service_type_name','service_type_description')
         price=servicetype_detail[0]['price']
         service_type_id=servicetype_detail[0]['id']
