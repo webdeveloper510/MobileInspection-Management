@@ -7,25 +7,24 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from Mobile_Inspectionapp.renderer import UserRenderer
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import action
-from django.contrib.auth.hashers import check_password
 from .validater import *
 from django.http import JsonResponse
 import json
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import login
-from django.contrib.auth import authenticate
-from django.contrib.auth import authenticate, login, logout
-from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from django.http import Http404
+from rest_framework.authtoken.models import Token
+from django.contrib import auth
+from django.contrib.auth import get_user_model 
+from rest_framework.authentication import TokenAuthentication
 
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-    return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-    }
+# def get_tokens_for_user(user):
+#     refresh = RefreshToken.for_user(user)
+#     return {
+#         'refresh': str(refresh),
+#         'access': str(refresh.access_token),
+#     }
 
 # class RegisterView(APIView):
 #  renderer_classes=[UserRenderer]
@@ -116,13 +115,15 @@ class UserLoginView(APIView):
         else:
             user=User.objects.filter(email=emaild).update(ifLogged=True)
             userdetail=User.objects.filter(email=emaild).values('First_name','Last_name','email','mobile','title','attribute_name')
+            token = Token.objects.get_or_create(user=user)
+            print('token',token)
             print("print--- detail",userdetail[0]['First_name'])
             data={'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
-            token= get_tokens_for_user(user)
-            return JsonResponse({'token':token,'message':'Login Successfull','status':'200','data':data})
+            return JsonResponse({'token':str(token),'message':'Login Successfull','status':'200','data':data})
         
 class LogoutUser(APIView):
-  renderer_classes = [UserRenderer]
+  permission_classes = [IsAuthenticated]
+  authentication_classes = [TokenAuthentication]
   def post(self, request, format=None):
     return Response({'msg':'Logout Successfully'},status=status.HTTP_200_OK)
     
