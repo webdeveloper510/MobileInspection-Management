@@ -19,25 +19,6 @@ from django.contrib import auth
 from django.contrib.auth import get_user_model 
 from rest_framework.authentication import TokenAuthentication
 
-# def get_tokens_for_user(user):
-#     refresh = RefreshToken.for_user(user)
-#     return {
-#         'refresh': str(refresh),
-#         'access': str(refresh.access_token),
-#     }
-
-# class RegisterView(APIView):
-#  renderer_classes=[UserRenderer]
- 
-#  def post(self,request,format=None):
-#     serializer=UserSerializer(data=request.data)
-    
-#     if serializer.is_valid(raise_exception=True):
-#         user=serializer.save()
-#         print(serializer.data)
-#         data={'First_name':serializer.data['First_name'],'Last_name':serializer.data['Last_name'],'email':serializer.data['email'],'title':str(serializer.data['title']),'mobile':serializer.data['mobile'],'attribute_name':str(serializer.data['attribute_name'])}
-#         return JsonResponse({'message':'Registeration Successfull','status':'200','data':data})
-#     # return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 class RegisterView(APIView):
     @csrf_exempt 
     @action(detail=False, methods=['post'])
@@ -75,21 +56,6 @@ class RegisterView(APIView):
          dict_data={"Firstname":First_name,"Lastname":Last_name,"email":email,"title":title,"mobile":mobile,"attribute_name":attribute_name}
          return JsonResponse({'message':'Registeration Successfull','status':'200','data':dict_data})
 
-# class UserLoginView(APIView):
-#   renderer_classes = [UserRenderer]
-#   serializer_class = UserLoginSerializer
-#   def post(self, request, *args, **kwargs):
-#         serializer_class = UserLoginSerializer(data=request.data)
-        
-#         if serializer_class.is_valid(raise_exception=True):
-#             print('data--',serializer_class.data['token'])
-#             email=serializer_class.data['email']
-#             print(email)
-#             userdetail=User.objects.filter(email=email).values('First_name','Last_name','email','mobile','title','attribute_name')
-#             print("print--- detail",userdetail[0]['First_name'])
-#             data={'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
-#             return JsonResponse({'message':'Login Successfull','status':'200','data':data})
-#         return JsonResponse(serializer_class.errors, status=status.HTTP_200_OK)
 
 class UserLoginView(APIView): 
     @csrf_exempt 
@@ -356,11 +322,5 @@ class ContactView(APIView):
             contact_data.save()
             return JsonResponse({"message":"thanks for contacting us","status":"200"})
 
-# class CartView(APIView):
-#  def post(self,request,format=None):
-#     serializer=CartSerializer(data=request.data)
-#     if serializer.is_valid(raise_exception=True):
-#         user=serializer.save()
-#         return JsonResponse(serializer.data)
-#     return JsonResponse(serializer.errors,status=status.HTTP_400_BAD_REQUEST)            
+         
             
