@@ -69,3 +69,12 @@ class ContactAdmin(admin.ModelAdmin):
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
   list_display = ('id','service_id','created_at','updated_at')
+@admin.register(Customer_Address)
+class Customer_AddressAdmin(admin.ModelAdmin):
+  list_display = ('id','customer_id','address_id')
+
+@admin.register(uploadpdf)
+class uploadpdfAdmin(admin.ModelAdmin):
+  list_display = ('id','uploadfile')
+  
+  

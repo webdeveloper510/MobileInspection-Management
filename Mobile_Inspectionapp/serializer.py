@@ -7,11 +7,10 @@ from rest_framework.validators import UniqueValidator
 from uuid import uuid4
 from .validater import *
 from phonenumber_field.serializerfields import PhoneNumberField
-from django.contrib.auth.hashers import make_password
-from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken, TokenError
-import json
-from django.http import JsonResponse
+
+
+
+
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all())],required=True
@@ -24,7 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=250,required=True)
     class Meta:
         model = User
-        fields  = ['email', 'First_name','Last_name','title','mobile','attribute_name', 'password']
+        fields  = ['id','email', 'First_name','Last_name','title','mobile','attribute_name', 'password']
        
         # extra_kwargs={
         
@@ -233,3 +232,19 @@ class ServiceorderSerializer(serializers.ModelSerializer):
            
      def create(self, validate_data):
          return Service_Order.objects.create(**validate_data)
+     
+class Customer_AddressSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Customer_Address
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Customer_Address.objects.create(**validate_data)
+     
+class UploadpdfSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= uploadpdf
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return uploadpdf.objects.create(**validate_data)

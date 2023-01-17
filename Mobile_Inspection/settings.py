@@ -90,7 +90,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         
 ],
-'DEFAULT_AUTHENTICATION_CLASSES': [
+ 'DEFAULT_AUTHENTICATION_CLASSES': [
     'rest_framework_simplejwt.authentication.JWTAuthentication',
 ]
 }
@@ -196,6 +196,7 @@ STATICFILES_DIRS = [
 ]
 MEDIA_ROOT = BASE_DIR /"static/media"
 MEDIA_URL = "/media/"
+BASE_URL="http://127.0.0.1:8000"
 
 # PASSWORD_HASHERS = (
 #     'django.contrib.auth.hashers.PBKDF2PasswordHasher',

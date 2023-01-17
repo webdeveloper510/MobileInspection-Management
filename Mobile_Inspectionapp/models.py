@@ -12,7 +12,7 @@ class User(models.Model):
     Last_name = models.CharField(max_length=50, null=False,default="")
     email = models.EmailField(max_length=30, null=False,default="")
     title=models.CharField(max_length=50, null=False,default="")
-    mobile=PhoneNumberField(null=False, unique=True)
+    mobile=PhoneNumberField(null=False)
     attribute_name=models.CharField(max_length=50, null=False,default="")
     password = models.CharField(max_length=250,null=False)
     ifLogged  = models.BooleanField(default=False)
@@ -131,7 +131,7 @@ class Address(models.Model):
 
 class Customer_Address(models.Model):
     customer_id= models.ForeignKey(User, on_delete=models.CASCADE)
-    address_id=models.ForeignKey(Address, on_delete=models.CASCADE)
+    address_id=models.ForeignKey(Address, on_delete=models.CASCADE,blank=True,null=True)
 
 class Establishment_type(models.Model):
     Establishment_type=models.CharField(max_length=250,null=False)
@@ -144,9 +144,6 @@ class Establishment(models.Model):
     establishment_type_id=models.ForeignKey(Establishment_type, on_delete=models.CASCADE,null=True)
     
    
-    
-
-      
 class Service_Order(models.Model):
     User_id = models.ForeignKey(User, on_delete=models.CASCADE)
     service_id = models.ForeignKey(Service, on_delete=models.CASCADE)
@@ -163,21 +160,25 @@ class Service_Order(models.Model):
         return "{} -{}".format(self.User_id)     
 
 class Contact(models.Model):
-    firstname=models.CharField(max_length=500,null=False)
-    lastname=models.CharField(max_length=500,null=False)
-    email=models.EmailField()
-    phone=PhoneNumberField(null=False)
-    street_number=models.CharField(max_length=500,null=False)
-    unit_number=models.CharField(max_length=500,null=False)
-    address=models.CharField(max_length=500,null=False)
-    address1=models.CharField(max_length=500,null=False)
-    city=models.CharField(max_length=500,null=False)
-    state=models.CharField(max_length=500,null=False)
-    country=models.CharField(max_length=500,null=False)
-    zipcode=models.IntegerField()
-    comment=models.TextField(max_length=500)
+    firstname=models.CharField(max_length=500,null=True,blank=True)
+    lastname=models.CharField(max_length=500,null=True,blank=True)
+    email=models.EmailField(blank=True)
+    phone=PhoneNumberField(null=True,blank=True)
+    street_number=models.CharField(max_length=500,null=True,blank=True)
+    unit_number=models.CharField(max_length=500,null=True,blank=True)
+    address=models.CharField(max_length=500,null=True,blank=True)
+    address1=models.CharField(max_length=500,null=True,blank=True)
+    city=models.CharField(max_length=500,null=True,blank=True)
+    state=models.CharField(max_length=500,null=True,blank=True)
+    country=models.CharField(max_length=500,null=True,blank=True)
+    zipcode=models.IntegerField(null=True,blank=True)
+    comment=models.TextField(max_length=500,null=True,blank=True)
     
 class Cart(models.Model):
     service_id = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+class uploadpdf(models.Model):
+    uploadfile=models.FileField(upload_to="products_images/",blank=True,null=True)
+    

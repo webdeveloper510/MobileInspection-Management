@@ -1,8 +1,9 @@
 django-phonenumber-field-7.0.1
-django-phone-field- 1.8.1
+phonenumber_field- 1.8.1
 corsheaders
-rest_framework
+djangorestframework
 django
 Pillow
 django-cryptography
 virtualenv
+djangorestframework-simplejwt
