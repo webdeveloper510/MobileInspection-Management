@@ -6,9 +6,9 @@ from rest_framework.authtoken import views
 
 urlpatterns = [
     path('login/',UserLoginView.as_view(),name='login'),
-    # path('test/',Test.as_view()),
-    path('test2/',TestLoginView.as_view(),name='test'),
+    path('password-set/',PasswordSetViewSet.as_view()),
     path('register/',RegisterView.as_view(),name='register'),
+    path('resetpasswordlink/',SendPasswordResetLink.as_view(), name='send-reset-password link'),
     path('contact/',ContactView.as_view(),name='contact'),
     path('serviceagreement/',ServiceAgreementView.as_view(),name='service_agreement'),
     path('servicetype/',ServiceTypeView.as_view(),name='servicetype'),

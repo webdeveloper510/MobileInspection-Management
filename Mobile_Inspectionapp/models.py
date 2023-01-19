@@ -10,13 +10,14 @@ from django.core.validators import MinValueValidator,MaxValueValidator
 class User(models.Model):
     First_name = models.CharField(max_length=50, null=False,default="")
     Last_name = models.CharField(max_length=50, null=False,default="")
-    email = models.EmailField(max_length=30, null=False,default="")
+    email = models.EmailField(max_length=50, null=False,default="")
     title=models.CharField(max_length=50, null=False,default="")
     mobile=PhoneNumberField(null=False)
     attribute_name=models.CharField(max_length=50, null=False,default="")
     password = models.CharField(max_length=250,null=False)
     ifLogged  = models.BooleanField(default=False)
     token = models.CharField(max_length=500, null=True, default="")
+    
     
 
     def __str__(self):
