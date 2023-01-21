@@ -248,3 +248,11 @@ class UploadpdfSerializer(serializers.ModelSerializer):
            
      def create(self, validate_data):
          return uploadpdf.objects.create(**validate_data)
+
+class Establishment_ContactSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Establishment_Contact
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Establishment_Contact.objects.create(**validate_data)

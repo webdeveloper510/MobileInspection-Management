@@ -140,11 +140,18 @@ class Establishment_type(models.Model):
     
 class Establishment(models.Model):
     customer_id = models.ForeignKey(User, on_delete=models.CASCADE ,null=True)
-    address_id = models.ForeignKey(Address, on_delete=models.CASCADE,null=True)
+    address_id = models.ForeignKey(Address, on_delete=models.CASCADE,blank=True,null=True)
     name=models.CharField(max_length=250,null=True)
     establishment_type_id=models.ForeignKey(Establishment_type, on_delete=models.CASCADE,null=True)
     
-   
+class Establishment_Contact(models.Model):
+    establishment_id= models.ForeignKey(Establishment, on_delete=models.CASCADE ,null=True)
+    firstname=models.CharField(max_length=250,null=True)
+    lastname=models.CharField(max_length=250,null=True)
+    title=models.CharField(max_length=250,null=True)
+    phone=PhoneNumberField(max_length=250,null=True)
+    
+    
 class Service_Order(models.Model):
     User_id = models.ForeignKey(User, on_delete=models.CASCADE)
     service_id = models.ForeignKey(Service, on_delete=models.CASCADE)

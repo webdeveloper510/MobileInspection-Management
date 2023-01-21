@@ -77,4 +77,6 @@ class Customer_AddressAdmin(admin.ModelAdmin):
 class uploadpdfAdmin(admin.ModelAdmin):
   list_display = ('id','uploadfile')
   
-  
+@admin.register(Establishment_Contact)
+class Establishment_ContactfAdmin(admin.ModelAdmin):
+  list_display = ('id','establishment_id','firstname','lastname','title','phone')  
