@@ -24,8 +24,6 @@ from django.utils.encoding import smart_str,force_bytes, DjangoUnicodeDecodeErro
 from django.conf import settings
 
 
-
-
 # Generate Token Manually
 def get_tokens_for_user(user):
   refresh = RefreshToken.for_user(user)
@@ -33,7 +31,8 @@ def get_tokens_for_user(user):
       'refresh': str(refresh),
       'access': str(refresh.access_token),
   }
-#HELLOO
+# User Register class
+
 class RegisterView(APIView):
     @csrf_exempt 
     @action(detail=False, methods=['post'])
@@ -63,6 +62,14 @@ class RegisterView(APIView):
           return Response(data)
      if '@' not in email:
          return Response({"message":"please enter valid email",'status':"400"})
+     if not First_name:
+         return Response({"message":"Firstname is required",'status':"400"})
+     if not Last_name:
+         return Response({"message":"Lastname is required",'status':"400"})
+     if not password:
+         return Response({"message":"password is required",'status':"400"})
+     if not mobile:
+         return Response({"message":"mobile number is required",'status':"400"})
      else:
          registred_data=User.objects.create(First_name=First_name,Last_name=Last_name,email=email,title=title,mobile=mobile,attribute_name=attribute_name,password=password)
          serializer = UserSerializer(data=registred_data)
@@ -77,7 +84,6 @@ class RegisterView(APIView):
         #  print('token-------',token)
          return JsonResponse({'message':'Registeration Successfull','status':'200','data':dict_data})
      
-
 
 class UserLoginView(APIView): 
     @csrf_exempt 
@@ -102,13 +108,63 @@ class UserLoginView(APIView):
             data={'id':str(userdetail[0]['id']),'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
             return JsonResponse({'message':'Login Successfull','status':'200','data':data})
         
+class SendPasswordResetLink(APIView):  
+    @csrf_exempt 
+    @action(detail=False, methods=['post'])
+    def post(self, request, format=None):
+        email=request.data.get('email')
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email = email)
+            link = 'http://127.0.0.1:8000/password_set/'
+            print(link)
+            print('Password Reset Link', link)
+            return Response({"message":"success",'status':'200','resetlink':link})
+        else:
+            return Response({"message":"user does not exist ","status":"400"})
+    
+class PasswordSetViewSet(APIView):
+    @csrf_exempt 
+    @action(detail=False, methods=['post'])
+    def post(self, request, format=None):
+        email=request.data.get('email')
+        print(email)
+        newpassword=request.data.get('password')
+        print(newpassword)
+        if email:
+            if User.objects.filter(email=email).exists():
+                print(User.objects.filter(email=email).exists())
+                User.objects.filter(email=email).update(password=newpassword)
+                user_data=User.objects.filter(email=email).values('id')
+                user_id=user_data[0]['id']
+                print(user_id)
+                data={"id":str(user_id),"email":email}
+                return JsonResponse({"message":"you password is successfully changed","status":"200","data":data})
+            else:
+                return JsonResponse({"message":"you are entring a wrong email id","status":"400"})
+        else:
+            return JsonResponse({"message":"please enter valid email id","status":"400"})
 
+
+
+    
+class CustomerProfileView(APIView): 
+    @csrf_exempt
+    def get(self, request, pk, format=None):
+        if User.objects.filter(id=pk).exists():
+            Csdata = User.objects.filter(id=pk).values('id','First_name','Last_name','email','mobile','title',
+                                                                'attribute_name')
+            data={"id":str(Csdata[0]['id']),"First_name":Csdata[0]['First_name'],"Last_name":Csdata[0]['Last_name'],
+                "email":Csdata[0]['email'],"mobile":Csdata[0]['mobile'],"title":Csdata[0]['title'],"attribute_name":Csdata[0]['attribute_name']}
+        
+            return JsonResponse({"status":"200","message":"success","data":data})
+        else:
+            return JsonResponse({"status":"400","message":"user does not Exist"})   
             
-class LogoutUser(APIView):
-#   permission_classes = [IsAuthenticated]
-  authentication_classes = [TokenAuthentication]
-  def post(self, request, format=None):
-    return Response({'msg':'Logout Successfully'},status=status.HTTP_200_OK)
+# class LogoutUser(APIView):
+# #   permission_classes = [IsAuthenticated]
+#   authentication_classes = [TokenAuthentication]
+#   def post(self, request, format=None):
+#     return Response({'msg':'Logout Successfully'},status=status.HTTP_200_OK)
     
 class ServiceAgreementView(APIView):
    
@@ -149,6 +205,7 @@ class ServiceTypeView(APIView):
             # print(array)
         return JsonResponse({"status":"200","message":"Success","data":array})  
     
+#Get service by id
 
 class ServiceListView(APIView):
     
@@ -205,6 +262,7 @@ class AddressView(APIView):
             array.append(data)
         return JsonResponse({"status": "200","message": "Success","data":array})
     
+# Establishment related api    
 class EstablishmentView(APIView):
     def get(self, request, format=None):
         service = Establishment.objects.all().order_by('id')
@@ -219,6 +277,7 @@ class EstablishmentView(APIView):
           data={"id":str(id),"customer_id":str(customer_id),"address_id":str(address_id),"name":name,"establishment_type_id":str(establishment_type_id)}
           array.append(data)
         return JsonResponse({ "status": "200","message": "Success","data":array})
+    
 
 class EstablishmentRegisterView(APIView):
  renderer_classes=[UserRenderer]
@@ -232,25 +291,39 @@ class EstablishmentRegisterView(APIView):
     state=request.data.get('state')
     country=request.data.get('country')
     zip_code=request.data.get('zip_code')
-    # print('id--',customer_id)
+    print(len(zip_code))
     establishment_type_id = request.data.get('establishment_type_id')
-        
-    if Address.objects.filter(id= address_id ).exists():
-        
+    if address_id:
+        if not Address.objects.filter(id=address_id).exists():
+            return JsonResponse({"message":"address_id is not available ","status":"400"})
         if not customer_id:
-            return Response({"message":"customer_id is not available ","status":"400"})
+            return JsonResponse({"message":"customer_id is not available ","status":"400"})
        
         if not User.objects.filter(id=customer_id).exists():
-            return Response({"message":"customer_id is does not exits","status":"400"})
-        
-        if not establishment_type_id:
-            return Response({"message":"establishment_type_id is not available ","status":"400"})
-        
-        if not Establishment_type.objects.filter(id=establishment_type_id).exists():
-            return Response({"message":"establishment_type_id is does not exits","status":"400"})
+            return JsonResponse({"message":"customer_id  does not exits","status":"400"})
         if not name:
-           return Response({"message":"name field can not be empty","status":"400"})
-        
+            return JsonResponse({"message":"name field is required","status":"400"})
+        if not Establishment.objects.filter(id=establishment_type_id).exists():
+            return JsonResponse({"message":"Establishment_id  does not exits","status":"400"})
+        if unit_number:
+           unit_number=unit_number
+           return JsonResponse({"message":"address_id is available,other address field is not required","status":"400"})
+        if address:
+           address=address
+           return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
+        if city:
+           city=city
+           return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
+        if state:
+           state=state
+           return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
+        if country:
+           country=country
+           return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
+        if zip_code:
+           zip_code=zip_code
+           return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
+       
         user = User.objects.get(id= customer_id)
         user.user = user
         
@@ -265,37 +338,42 @@ class EstablishmentRegisterView(APIView):
         esdata.save()
         dict_data={'customer_id':customer_id,'address_id':address_id,'name':name,'establishment_type_id':establishment_type_id }
         return JsonResponse({"message":"success","status":"200","data":dict_data})
+        
     else:
         if not customer_id:
-            return Response({"message":"customer_id is not available ","status":"400"})
+            return JsonResponse({"message":"customer_id is not available ","status":"400"})
        
         if not User.objects.filter(id=customer_id).exists():
-            return Response({"message":"customer_id is does not exits","status":"400"})
+            return JsonResponse({"message":"customer_id is does not exits","status":"400"})
         
         if not establishment_type_id:
-            return Response({"message":"establishment_type_id is not available ","status":"400"})
+            return JsonResponse({"message":"establishment_type_id is not available ","status":"400"})
         
         if not Establishment_type.objects.filter(id=establishment_type_id).exists():
-            return Response({"message":"establishment_type_id is does not exits","status":"400"})
+            return JsonResponse({"message":"establishment_type_id is does not exits","status":"400"})
         if not name:
-           return Response({"message":"name field can not be empty","status":"400"})
+           return JsonResponse({"message":"name field can not be empty","status":"400"})
         
         if not  unit_number:
-            return Response({"message":"unit number is not available ,","status":"400"})
+            return JsonResponse({"message":"unit number is not available ,","status":"400"})
         if not  address:
-            return Response({"message":" address is not available ,","status":"400"})
+            return JsonResponse({"message":"address is not available ,","status":"400"})
         if not  city:
-            return Response({"message":" city is not available ,","status":"400"})
+            return JsonResponse({"message":"city is not available ,","status":"400"})
         if not  state:
-            return Response({"message":" state is not available ,","status":"400"})
+            return JsonResponse({"message":"state is not available ,","status":"400"})
         if not  country:
-            return Response({"message":" country is not available ,","status":"400"})
+            return JsonResponse({"message":"country is not available ,","status":"400"})
         if not  zip_code:
-            return Response({"message":" zip_code is not available ,","status":"400"})
-       
+            return JsonResponse({"message":"zip_code is not available ,","status":"400"})
+        if not zip_code.isnumeric():
+            return JsonResponse({"message":"Zipcode must be integer value,","status":"400"})
+        if len(zip_code)>8 or len(zip_code)<6:
+            return JsonResponse({"message":"Please Enter valid Zipcode ,","status":"400"})
         addressdata=Address.objects.create(unit_number=unit_number,addressline1=address,city=city,state=state,postal_code=zip_code,country_name=country)
         serializer2=AddressSerializer(data=addressdata)
         addressdata.save()
+        print(addressdata)
         addressid=addressdata.id
         
         user = User.objects.get(id= customer_id)
@@ -313,11 +391,21 @@ class ContactEstablishmentView(APIView):
     @csrf_exempt 
     @action(detail=False, methods=['post'])
     def post(self, request, format=None):
+        customer_id=request.data.get('customer_id')
         establishment_id=request.data.get('establishment_id')
         firstname=request.data.get('firstname')
         lastname=request.data.get('lastname')
         title=request.data.get('title')
         phone=request.data.get('phone')
+        
+        if customer_id:
+            if User.objects.filter(id= customer_id).exists() :
+                num = 0
+            else:
+                return JsonResponse({"message":" Customer id  does not exist","status":"400"})
+        else:
+            return JsonResponse({"message":" Customer id is required ","status":"400"})
+        
         if establishment_id:
             if Establishment.objects.filter(id= establishment_id).exists() :
                 num = 0
@@ -333,10 +421,6 @@ class ContactEstablishmentView(APIView):
            lastname = lastname
         else:
            return JsonResponse({"message":"lastname field can not be empty ","status":"400"})
-        if title:
-           title = title
-        else:
-           return JsonResponse({"message":"title field can not be empty ","status":"400"})
         if phone:
            phone = phone
         else:
@@ -344,22 +428,18 @@ class ContactEstablishmentView(APIView):
        
         EstablishmentID = Establishment.objects.get(id=establishment_id)
         EstablishmentID.EstablishmentID = EstablishmentID
+        
+        user = User.objects.get(id= customer_id)
+        user.user = user
        
-        Cedata=Establishment_Contact.objects.create(establishment_id=EstablishmentID,firstname=firstname,lastname=lastname,title=title,phone=phone)
+        Cedata=Establishment_Contact.objects.create(customer_id=user,establishment_id=EstablishmentID,firstname=firstname,lastname=lastname,title=title,phone=phone)
         serializer = Establishment_ContactSerializer(data=Cedata)
         Cedata.save()
-        dict_data={"establishment_id":establishment_id,"firstname":firstname,"lastname":lastname,"title":title,"phone":phone}
-        return JsonResponse({"message":"Success","status":"200","data":dict_data})    
+        dict_data={"customer_id":customer_id,"establishment_id":establishment_id,"firstname":firstname,"lastname":lastname,"title":title,"phone":phone}
+        return JsonResponse({"message":"Your Contact is successfully saved","status":"200","data":dict_data})    
 
 
 class CustomerAddressView(APIView):
-    @csrf_exempt
-    def get_object(self, pk):
-        try:
-            return Customer_Address.objects.get(pk=pk)
-        except Customer_Address.DoesNotExist:
-            raise Http404
-    
     @csrf_exempt
     def get(self, request, pk, format=None):
         print("fyhgvbjgjbh",pk)
@@ -445,21 +525,40 @@ class ContactView(APIView):
         country=request.data.get('country')
         zipcode=request.data.get('zipcode')
         comment=request.data.get('comment')
-        
-        if firstname=="":
+        if not firstname:
             return JsonResponse({"message":"Firstname is required","status":"400"})
-        if Lastname=="":
+        if not Lastname:
             return JsonResponse({"message":"lastname is required","status":"400"})
-        if email=="":
+        if not email:
             return JsonResponse({"message":"email is required","status":"400"})
-        if phone=="":
+        if not phone:
             return JsonResponse({"message":"phone number is required","status":"400"})
+        if not street_number:
+            return JsonResponse({"message":"street_number is required","status":"400"})
+        if not unit_number:
+            return JsonResponse({"message":"unit_number is required","status":"400"})
+        if not address:
+            return JsonResponse({"message":"address is required","status":"400"})
+        if not address1:
+            return JsonResponse({"message":"address1 is required","status":"400"})
+        if not city:
+            return JsonResponse({"message":"city is required","status":"400"})
+        if not state:
+            return JsonResponse({"message":"state is required","status":"400"})
+        if not country:
+            return JsonResponse({"message":"country is required","status":"400"})
+        if not zipcode:
+            return JsonResponse({"message":"zipcode is required","status":"400"})
+        if not zipcode.isnumeric():
+            return JsonResponse({"message":"Zipcode must be integer value,","status":"400"})
+        if len(zipcode)>8 or len(zipcode)<6:
+            return JsonResponse({"message":"Please Enter valid Zipcode ,","status":"400"})
         else:
             contact_data=Contact.objects.create(firstname=firstname,lastname=Lastname,email=email,phone=phone,
                                             street_number=street_number,unit_number=unit_number,address=address,address1=address1,city=city,
                                             state=state,country=country,zipcode=zipcode,comment=comment)
             
-            serializer = UserSerializer(data=contact_data)
+            serializer =ContactSerializer(data=contact_data)
             contact_data.save()
             return JsonResponse({"message":"thanks for contacting us","status":"200"})
 
@@ -503,46 +602,18 @@ class pdfview(APIView):
         return Response(url)
     
 
-class SendPasswordResetLink(APIView):  
-    @csrf_exempt 
-    @action(detail=False, methods=['post'])
-    def post(self, request, format=None):
-        email=request.data.get('email')
-        if User.objects.filter(email=email).exists():
-            user = User.objects.get(email = email)
-            # uid = urlsafe_base64_encode(force_bytes(user.id))#Encoding is the process of converting data into a format required for a number of information processing needs
-            # print(user.id)
-            # print('Encoded UID', uid)
-            link = 'http://127.0.0.1:8000/password_set/'
-            print(link)
-            print('Password Reset Link', link)
-            return Response({"message":"success",'status':'200','resetlink':link})
-        else:
-            return Response({"message":"user does not exist ","status":"400"})
+
     
-class PasswordSetViewSet(APIView):
-    @csrf_exempt 
-    @action(detail=False, methods=['post'])
-    def post(self, request, format=None):
-        email=request.data.get('email')
-        print(email)
-        newpassword=request.data.get('password')
-        print(newpassword)
-        if email:
-            if User.objects.filter(email=email).exists():
-                print(User.objects.filter(email=email).exists())
-                User.objects.filter(email=email).update(password=newpassword)
-                user_data=User.objects.filter(email=email).values('id')
-                user_id=user_data[0]['id']
-                print(user_id)
-                data={"id":str(user_id),"email":email}
-                return JsonResponse({"message":"you password is successfully changed","status":"200","data":data})
-            else:
-                return JsonResponse({"message":"you are entring a wrong email id","status":"400"})
-        else:
-            return JsonResponse({"message":"please enter valid email id","status":"400"})
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
 # class EstablishmentRegisterView(APIView):
 #  renderer_classes=[UserRenderer]

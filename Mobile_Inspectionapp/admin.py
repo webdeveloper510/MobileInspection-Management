@@ -27,7 +27,7 @@ class ServiceAgreementAdmin(admin.ModelAdmin):
   list_display = ('id','service_agreement_form','signature','customer_id','date','time')
 @admin.register(ServiceType)
 class ServiceTypeAdmin(admin.ModelAdmin):
-  list_display = ('id','service_agreement_id','service_type_name','price')
+  list_display = ('id','service_agreement_id','service_type_description','service_type_name','price')
 @admin.register(Service_Image)
 class Service_ImageAdmin(admin.ModelAdmin):
   list_display = ('id','service_id','service_image')
@@ -79,4 +79,4 @@ class uploadpdfAdmin(admin.ModelAdmin):
   
 @admin.register(Establishment_Contact)
 class Establishment_ContactfAdmin(admin.ModelAdmin):
-  list_display = ('id','establishment_id','firstname','lastname','title','phone')  
+  list_display = ('id','customer_id','establishment_id','firstname','lastname','title','phone')  

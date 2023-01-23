@@ -139,12 +139,13 @@ class Establishment_type(models.Model):
     title=models.CharField(max_length=250,null=False)
     
 class Establishment(models.Model):
-    customer_id = models.ForeignKey(User, on_delete=models.CASCADE ,null=True)
+    customer_id = models.ForeignKey(User, on_delete=models.CASCADE ,blank=True,null=True)
     address_id = models.ForeignKey(Address, on_delete=models.CASCADE,blank=True,null=True)
     name=models.CharField(max_length=250,null=True)
-    establishment_type_id=models.ForeignKey(Establishment_type, on_delete=models.CASCADE,null=True)
+    establishment_type_id=models.ForeignKey(Establishment_type, on_delete=models.CASCADE,blank=True,null=True)
     
 class Establishment_Contact(models.Model):
+    customer_id= models.ForeignKey(User, on_delete=models.CASCADE ,null=True)
     establishment_id= models.ForeignKey(Establishment, on_delete=models.CASCADE ,null=True)
     firstname=models.CharField(max_length=250,null=True)
     lastname=models.CharField(max_length=250,null=True)

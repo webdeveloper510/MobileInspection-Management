@@ -19,7 +19,9 @@ urlpatterns = [
     path('Establishmentregister/',EstablishmentRegisterView.as_view(),name='establishregister'),
     path('contact_establishment/',ContactEstablishmentView.as_view(),name='establish-contact'),
     path('customeraddress/<int:pk>/',CustomerAddressView.as_view(),name='customer_address'),
-    path('pdf/',pdfview.as_view(),name="pdf")
+    path('pdf/',pdfview.as_view(),name="pdf"),
+    path('profile/<int:pk>',CustomerProfileView.as_view(),name="profile"),
+    # path('test/',TestView.as_view(),name="test"),
 
     
     
