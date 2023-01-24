@@ -242,7 +242,7 @@ class ServiceListView(APIView):
         data={"id":str(serializer.data['id']),"name":serializer.data['name'],"description":serializer.data['description'],"service_image":array1,"price":str(price),"service_type":array2,"service_type_description":service_type_description}
         return JsonResponse({ "status": "200","message": "Success","data":data})
     
-
+# address api 
  
 class AddressView(APIView):
    
@@ -262,6 +262,41 @@ class AddressView(APIView):
             array.append(data)
         return JsonResponse({"status": "200","message": "Success","data":array})
     
+class AddAddressView(APIView):
+ renderer_classes=[UserRenderer]
+ @csrf_exempt
+ def post(self,request,format=None):
+    unit_number=request.data.get('unit_number')
+    address=request.data.get('address')
+    city=request.data.get('city')
+    state=request.data.get('state')
+    country=request.data.get('country')
+    zip_code=request.data.get('zip_code')
+    print(len(zip_code))
+    
+    if not  unit_number:
+        return JsonResponse({"message":"unit number is not available ,","status":"400"})
+    if not  address:
+        return JsonResponse({"message":"address is not available ,","status":"400"})
+    if not  city:
+        return JsonResponse({"message":"city is not available ,","status":"400"})
+    if not  state:
+        return JsonResponse({"message":"state is not available ,","status":"400"})
+    if not  country:
+        return JsonResponse({"message":"country is not available ,","status":"400"})
+    if not  zip_code:
+        return JsonResponse({"message":"zip_code is not available ,","status":"400"})
+    if not zip_code.isnumeric():
+        return JsonResponse({"message":"Zipcode must be integer value,","status":"400"})
+    if len(zip_code)>8 or len(zip_code)<6:
+        return JsonResponse({"message":"Please Enter valid Zipcode ,","status":"400"})
+    
+    addressdata=Address.objects.create(unit_number=unit_number,addressline1=address,city=city,state=state,postal_code=zip_code,country_name=country)
+    serializer2=AddressSerializer(data=addressdata)
+    addressdata.save()
+    print(addressdata)
+    return JsonResponse({"message":"your  adddress is successfully saved","status":"200"})  
+    
 # Establishment related api    
 class EstablishmentView(APIView):
     def get(self, request, format=None):
@@ -278,115 +313,73 @@ class EstablishmentView(APIView):
           array.append(data)
         return JsonResponse({ "status": "200","message": "Success","data":array})
     
-
+    
 class EstablishmentRegisterView(APIView):
- renderer_classes=[UserRenderer]
- def post(self,request,format=None):
-    customer_id = request.data.get('customer_id')
-    address_id = request.data.get('address_id')
-    name = request.data.get('name')
-    unit_number=request.data.get('unit_number')
-    address=request.data.get('address')
-    city=request.data.get('city')
-    state=request.data.get('state')
-    country=request.data.get('country')
-    zip_code=request.data.get('zip_code')
-    print(len(zip_code))
-    establishment_type_id = request.data.get('establishment_type_id')
-    if address_id:
-        if not Address.objects.filter(id=address_id).exists():
-            return JsonResponse({"message":"address_id is not available ","status":"400"})
+    @csrf_exempt 
+    @action(detail=False, methods=['post'])
+    def post(self, request, format=None):  
+        customer_id=request.data.get('customer_id') 
+        establishment_type_id=request.data.get('establishment_type_id')
+        print()
+        name=request.data.get('name')
+        
         if not customer_id:
-            return JsonResponse({"message":"customer_id is not available ","status":"400"})
-       
-        if not User.objects.filter(id=customer_id).exists():
-            return JsonResponse({"message":"customer_id  does not exits","status":"400"})
-        if not name:
-            return JsonResponse({"message":"name field is required","status":"400"})
-        if not Establishment.objects.filter(id=establishment_type_id).exists():
-            return JsonResponse({"message":"Establishment_id  does not exits","status":"400"})
-        if unit_number:
-           unit_number=unit_number
-           return JsonResponse({"message":"address_id is available,other address field is not required","status":"400"})
-        if address:
-           address=address
-           return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
-        if city:
-           city=city
-           return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
-        if state:
-           state=state
-           return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
-        if country:
-           country=country
-           return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
-        if zip_code:
-           zip_code=zip_code
-           return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
-       
-        user = User.objects.get(id= customer_id)
-        user.user = user
+            return JsonResponse({"message":" Customer id is required ","status":"400"})
         
-        EstablishmentID = Establishment_type.objects.get(id= establishment_type_id)
-        EstablishmentID.EstablishmentID =EstablishmentID
-        
-        AddressID = Address.objects.get(id= address_id)
-        AddressID.AddressID = AddressID
+        if not User.objects.filter(id= customer_id).exists() :
             
-        esdata=Establishment.objects.create(customer_id=user ,address_id=AddressID, name=name,establishment_type_id=EstablishmentID)
-        serializer = EstablishmentSerializer(data=esdata)
-        esdata.save()
-        dict_data={'customer_id':customer_id,'address_id':address_id,'name':name,'establishment_type_id':establishment_type_id }
-        return JsonResponse({"message":"success","status":"200","data":dict_data})
+           return JsonResponse({"message":" Customer id  does not exist","status":"400"})    
         
-    else:
-        if not customer_id:
-            return JsonResponse({"message":"customer_id is not available ","status":"400"})
-       
-        if not User.objects.filter(id=customer_id).exists():
-            return JsonResponse({"message":"customer_id is does not exits","status":"400"})
+        if not  establishment_type_id :
+            return JsonResponse({"message":" establishment_type_id is required ","status":"400"})
         
-        if not establishment_type_id:
-            return JsonResponse({"message":"establishment_type_id is not available ","status":"400"})
+        if not Establishment_type.objects.filter(id= establishment_type_id).exists() :
+                   
+          return JsonResponse({"message":" establishment_type_id does not exists ","status":"400"})
         
-        if not Establishment_type.objects.filter(id=establishment_type_id).exists():
-            return JsonResponse({"message":"establishment_type_id is does not exits","status":"400"})
-        if not name:
-           return JsonResponse({"message":"name field can not be empty","status":"400"})
+        if name:
+            name = name
+        else:
+            return JsonResponse({"message":"name field can not be empty ","status":"400"})
         
-        if not  unit_number:
-            return JsonResponse({"message":"unit number is not available ,","status":"400"})
-        if not  address:
-            return JsonResponse({"message":"address is not available ,","status":"400"})
-        if not  city:
-            return JsonResponse({"message":"city is not available ,","status":"400"})
-        if not  state:
-            return JsonResponse({"message":"state is not available ,","status":"400"})
-        if not  country:
-            return JsonResponse({"message":"country is not available ,","status":"400"})
-        if not  zip_code:
-            return JsonResponse({"message":"zip_code is not available ,","status":"400"})
-        if not zip_code.isnumeric():
-            return JsonResponse({"message":"Zipcode must be integer value,","status":"400"})
-        if len(zip_code)>8 or len(zip_code)<6:
-            return JsonResponse({"message":"Please Enter valid Zipcode ,","status":"400"})
-        addressdata=Address.objects.create(unit_number=unit_number,addressline1=address,city=city,state=state,postal_code=zip_code,country_name=country)
-        serializer2=AddressSerializer(data=addressdata)
-        addressdata.save()
-        print(addressdata)
-        addressid=addressdata.id
+        EstablishmentTypeID = Establishment_type.objects.get(id=establishment_type_id)
+        EstablishmentTypeID.EstablishmentID = EstablishmentTypeID
         
-        user = User.objects.get(id= customer_id)
+        user = User.objects.get(id=customer_id)
         user.user = user
-        EstablishmentID = Establishment_type.objects.get(id= establishment_type_id)
-        EstablishmentID.EstablishmentID =EstablishmentID
-        AddressID = Address.objects.get(id= addressid)
-        AddressID.AddressID = AddressID
         
-        esdata=Establishment.objects.create(customer_id=user,name=name,establishment_type_id=EstablishmentID,address_id=AddressID)
-        dict_data={'customer_id':customer_id,'address_id':str(addressid),'name':name,'establishment_type_id':establishment_type_id }
-        return JsonResponse({"message":"success","status":"200","data":dict_data})
-
+        EstablishmentData=Establishment.objects.create(customer_id=user,establishment_type_id=EstablishmentTypeID,name=name)
+        serializer = EstablishmentSerializer(data=EstablishmentData)
+        EstablishmentData.save()
+        return JsonResponse({"message":"your establishment successfully saved ","status":"200"})
+    
+    
+class UpdateEastablishmentAddressView(APIView):
+    @csrf_exempt 
+    @action(detail=False, methods=['put'])
+    def put(self, request, format=None):  
+        establishment_id=request.data.get('establishment_id') 
+        address_id=request.data.get('address_id')
+        
+        if not establishment_id:
+            return JsonResponse({"message":" establishment_id is required ","status":"400"})
+        
+        if not Establishment.objects.filter(id= establishment_id).exists() :
+            
+         return JsonResponse({"message":" establishment_id is does not exist ","status":"400"})
+        
+        if not address_id:
+            return JsonResponse({"message":"address_id is required ","status":"400"})
+        
+        if not Address.objects.filter(id=address_id).exists() :
+            
+         return JsonResponse({"message":"address_id is does not exist ","status":"400"})
+        
+        updatedata=Establishment.objects.filter(id=establishment_id).update(address_id=address_id)
+        
+        return JsonResponse({"message":"your address_id successfully updated ","status":"200"})
+            
+    
 class ContactEstablishmentView(APIView):
     @csrf_exempt 
     @action(detail=False, methods=['post'])
@@ -506,8 +499,8 @@ class CustomerAddressView(APIView):
             return JsonResponse({"status":"400","message":"user does not exist"})
         return JsonResponse({"status":"200","message":"you data is updated successfully","data":dict})
 
-    
-
+# contact us Api
+   
 class ContactView(APIView):   
     @csrf_exempt 
     @action(detail=False, methods=['post'])
@@ -606,66 +599,122 @@ class pdfview(APIView):
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
 # class EstablishmentRegisterView(APIView):
 #  renderer_classes=[UserRenderer]
 #  def post(self,request,format=None):
 #     customer_id = request.data.get('customer_id')
 #     address_id = request.data.get('address_id')
 #     name = request.data.get('name')
-#     address=request.data.get('address')
 #     unit_number=request.data.get('unit_number')
+#     address=request.data.get('address')
 #     city=request.data.get('city')
 #     state=request.data.get('state')
 #     country=request.data.get('country')
 #     zip_code=request.data.get('zip_code')
-#     print('id--',customer_id)
+#     print(len(zip_code))
 #     establishment_type_id = request.data.get('establishment_type_id')
-#     if customer_id:
-#         if User.objects.filter(id= customer_id).exists() :
-#             num = 0
-#         else:
-#             return JsonResponse({"message":" Customer id  does not exist","status":"400"})
-#     else:
-#             return JsonResponse({"message":" customer id is required ","status":"400"})
 #     if address_id:
-#         if Address.objects.filter(id= address_id).exists():
-#             num = 0
-#         else:
-#             return JsonResponse({"message":"address id  does not exist","status":"400"})
-#     else:
-#        return JsonResponse({"message":"address id is required ","status":"400"})
-#     # if establishment_type_id:
-#     #     if Establishment_type.objects.filter(id= establishment_type_id).exists():
-#     #         num = 0
-#     #     else:
-#     #         return JsonResponse({"message":" address id  does not exist","status":"400"})
-#     # else:
-#     #     return JsonResponse({"message":" address id is required  ","status":"400"})
-#     if name:
-#         name = name
-#     else:
-#         return JsonResponse({"message":"name field can not be empty ","status":"400"})
-#     #created instance for user ,address id and establishment type id
-#     user = User.objects.get(id= customer_id)
-#     user.user = user
-#     # UserID  = User.objects.filter(id= customer_id).values('id')
-#     # EstablishmentID = Establishment_type.objects.get(id= establishment_type_id)
-#     # EstablishmentID.EstablishmentID =EstablishmentID
-#     AddressID = Address.objects.get(id= address_id)
-#     AddressID.AddressID = AddressID
+#         if not Address.objects.filter(id=address_id).exists():
+#             return JsonResponse({"message":"address_id is not available ","status":"400"})
+#         if not customer_id:
+#             return JsonResponse({"message":"customer_id is not available ","status":"400"})
+       
+#         if not User.objects.filter(id=customer_id).exists():
+#             return JsonResponse({"message":"customer_id  does not exits","status":"400"})
+#         if not name:
+#             return JsonResponse({"message":"name field is required","status":"400"})
+#         if not Establishment.objects.filter(id=establishment_type_id).exists():
+#             return JsonResponse({"message":"Establishment_id  does not exits","status":"400"})
+#         if unit_number:
+#            unit_number=unit_number
+#            return JsonResponse({"message":"address_id is available,other address field is not required","status":"400"})
+#         if address:
+#            address=address
+#            return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
+#         if city:
+#            city=city
+#            return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
+#         if state:
+#            state=state
+#            return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
+#         if country:
+#            country=country
+#            return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
+#         if zip_code:
+#            zip_code=zip_code
+#            return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
+       
+#         user = User.objects.get(id= customer_id)
+#         user.user = user
         
-#     esdata=Establishment.objects.create(customer_id=user ,address_id=AddressID, name=name)
-#     serializer = EstablishmentSerializer(data=esdata)
-#     esdata.save()
-#     dict_data={'customer_id':customer_id  , 'address_id':address_id,   'name':name,  }
-#     return JsonResponse({"message":"success","status":"200","data":dict_data})
-   
+#         EstablishmentID = Establishment_type.objects.get(id= establishment_type_id)
+#         EstablishmentID.EstablishmentID =EstablishmentID
+        
+#         AddressID = Address.objects.get(id= address_id)
+#         AddressID.AddressID = AddressID
+            
+#         esdata=Establishment.objects.create(customer_id=user ,address_id=AddressID, name=name,establishment_type_id=EstablishmentID)
+#         serializer = EstablishmentSerializer(data=esdata)
+#         esdata.save()
+#         dict_data={'customer_id':customer_id,'address_id':address_id,'name':name,'establishment_type_id':establishment_type_id }
+#         return JsonResponse({"message":"success","status":"200","data":dict_data})
+        
+#     else:
+#         if not customer_id:
+#             return JsonResponse({"message":"customer_id is not available ","status":"400"})
+       
+#         if not User.objects.filter(id=customer_id).exists():
+#             return JsonResponse({"message":"customer_id is does not exits","status":"400"})
+        
+#         if not establishment_type_id:
+#             return JsonResponse({"message":"establishment_type_id is not available ","status":"400"})
+        
+#         if not Establishment_type.objects.filter(id=establishment_type_id).exists():
+#             return JsonResponse({"message":"establishment_type_id is does not exits","status":"400"})
+#         if not name:
+#            return JsonResponse({"message":"name field can not be empty","status":"400"})
+        
+#         if not  unit_number:
+#             return JsonResponse({"message":"unit number is not available ,","status":"400"})
+#         if not  address:
+#             return JsonResponse({"message":"address is not available ,","status":"400"})
+#         if not  city:
+#             return JsonResponse({"message":"city is not available ,","status":"400"})
+#         if not  state:
+#             return JsonResponse({"message":"state is not available ,","status":"400"})
+#         if not  country:
+#             return JsonResponse({"message":"country is not available ,","status":"400"})
+#         if not  zip_code:
+#             return JsonResponse({"message":"zip_code is not available ,","status":"400"})
+#         if not zip_code.isnumeric():
+#             return JsonResponse({"message":"Zipcode must be integer value,","status":"400"})
+#         if len(zip_code)>8 or len(zip_code)<6:
+#             return JsonResponse({"message":"Please Enter valid Zipcode ,","status":"400"})
+#         addressdata=Address.objects.create(unit_number=unit_number,addressline1=address,city=city,state=state,postal_code=zip_code,country_name=country)
+#         serializer2=AddressSerializer(data=addressdata)
+#         addressdata.save()
+#         print(addressdata)
+#         addressid=addressdata.id
+        
+#         user = User.objects.get(id= customer_id)
+#         user.user = user
+#         EstablishmentID = Establishment_type.objects.get(id= establishment_type_id)
+#         EstablishmentID.EstablishmentID =EstablishmentID
+#         AddressID = Address.objects.get(id= addressid)
+#         AddressID.AddressID = AddressID
+        
+#         esdata=Establishment.objects.create(customer_id=user,name=name,establishment_type_id=EstablishmentID,address_id=AddressID)
+#         dict_data={'customer_id':customer_id,'address_id':str(addressid),'name':name,'establishment_type_id':establishment_type_id }
+#         return JsonResponse({"message":"success","status":"200","data":dict_data})    
+    
+    
+    
+    
+    
+    
+    
+ 
