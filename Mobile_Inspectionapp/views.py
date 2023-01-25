@@ -1,27 +1,19 @@
 from .models import *
 from .serializer import *
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from Mobile_Inspectionapp.renderer import UserRenderer
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import action
 from .validater import *
 from django.http import JsonResponse
-import json
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated ,AllowAny
 from django.http import Http404
-from rest_framework.authtoken.models import Token
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import  permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.encoding import smart_str,force_bytes, DjangoUnicodeDecodeError
 from django.conf import settings
+from rest_framework.authtoken.models import Token
 
 
 # Generate Token Manually
@@ -74,14 +66,11 @@ class RegisterView(APIView):
          registred_data=User.objects.create(First_name=First_name,Last_name=Last_name,email=email,title=title,mobile=mobile,attribute_name=attribute_name,password=password)
          serializer = UserSerializer(data=registred_data)
          registred_data.save()
-        #  token = get_tokens_for_user(registred_data)
          id=User.objects.filter(email=email).values('id','email')
          user=id[0]['email']
          print(user)
          print(id[0]['id'])
          dict_data={'id':str(id[0]['id']),"Firstname":First_name,"Lastname":Last_name,"email":email,"title":title,"mobile":mobile,"attribute_name":attribute_name}
-        #  token = get_tokens_for_user(user)
-        #  print('token-------',token)
          return JsonResponse({'message':'Registeration Successfull','status':'200','data':dict_data})
      
 
@@ -266,35 +255,55 @@ class AddAddressView(APIView):
  renderer_classes=[UserRenderer]
  @csrf_exempt
  def post(self,request,format=None):
-    unit_number=request.data.get('unit_number')
-    address=request.data.get('address')
-    city=request.data.get('city')
-    state=request.data.get('state')
-    country=request.data.get('country')
-    zip_code=request.data.get('zip_code')
-    print(len(zip_code))
-    
-    if not  unit_number:
-        return JsonResponse({"message":"unit number is not available ,","status":"400"})
-    if not  address:
-        return JsonResponse({"message":"address is not available ,","status":"400"})
-    if not  city:
-        return JsonResponse({"message":"city is not available ,","status":"400"})
-    if not  state:
-        return JsonResponse({"message":"state is not available ,","status":"400"})
-    if not  country:
-        return JsonResponse({"message":"country is not available ,","status":"400"})
-    if not  zip_code:
-        return JsonResponse({"message":"zip_code is not available ,","status":"400"})
-    if not zip_code.isnumeric():
-        return JsonResponse({"message":"Zipcode must be integer value,","status":"400"})
-    if len(zip_code)>8 or len(zip_code)<6:
-        return JsonResponse({"message":"Please Enter valid Zipcode ,","status":"400"})
-    
-    addressdata=Address.objects.create(unit_number=unit_number,addressline1=address,city=city,state=state,postal_code=zip_code,country_name=country)
-    serializer2=AddressSerializer(data=addressdata)
-    addressdata.save()
-    print(addressdata)
+    Data=request.data.get('data')
+    if not Data:
+        return JsonResponse({"message":"address list is empty","status":"400"})
+    for x in Data:
+        unit_number=x['unit_number']
+        
+        if not unit_number:
+            
+         return JsonResponse({"message":"unit number is not available","status":"400"})
+     
+        if Address.objects.filter(unit_number=unit_number).exists():
+            return JsonResponse({"message":" Unit number is already available","status":"400"}) 
+        
+        address=x['address']
+        if not  address:
+         return JsonResponse({"message":"address is not available ,","status":"400"})
+        
+        city=x['city']
+        if not  city:
+         return JsonResponse({"message":"city is not available ,","status":"400"})
+     
+        state=x['state']
+        if not  state:
+         return JsonResponse({"message":"state is not available ,","status":"400"})
+     
+        country=x['country']
+        if not  country:
+         return JsonResponse({"message":"country is not available ,","status":"400"})
+     
+        zip_code=x['zip_code']
+        if not  zip_code:
+         return JsonResponse({"message":"zip_code is not available ,","status":"400"})
+     
+        if not zip_code.isnumeric():
+         return JsonResponse({"message":"Zipcode must be integer value,","status":"400"})
+     
+        if len(zip_code)>8 or len(zip_code)<6:
+         return JsonResponse({"message":"Please Enter valid Zipcode ,","status":"400"})
+    for x in Data:
+        unit_number=x['unit_number']
+        address=x['address']
+        city=x['city']
+        state=x['state']
+        country=x['country']
+        zip_code=x['zip_code']
+        addressdata=Address.objects.create(unit_number=unit_number,addressline1=address,city=city,state=state,postal_code=zip_code,country_name=country)
+        serializer2=AddressSerializer(data=addressdata)
+        addressdata.save()
+        print(addressdata)
     return JsonResponse({"message":"your  adddress is successfully saved","status":"200"})  
     
 # Establishment related api    
@@ -320,7 +329,6 @@ class EstablishmentRegisterView(APIView):
     def post(self, request, format=None):  
         customer_id=request.data.get('customer_id') 
         establishment_type_id=request.data.get('establishment_type_id')
-        print()
         name=request.data.get('name')
         
         if not customer_id:
@@ -346,6 +354,7 @@ class EstablishmentRegisterView(APIView):
         EstablishmentTypeID.EstablishmentID = EstablishmentTypeID
         
         user = User.objects.get(id=customer_id)
+        print(user)
         user.user = user
         
         EstablishmentData=Establishment.objects.create(customer_id=user,establishment_type_id=EstablishmentTypeID,name=name)
@@ -359,6 +368,7 @@ class UpdateEastablishmentAddressView(APIView):
     @action(detail=False, methods=['put'])
     def put(self, request, format=None):  
         establishment_id=request.data.get('establishment_id') 
+        print(establishment_id)
         address_id=request.data.get('address_id')
         
         if not establishment_id:
@@ -384,52 +394,52 @@ class ContactEstablishmentView(APIView):
     @csrf_exempt 
     @action(detail=False, methods=['post'])
     def post(self, request, format=None):
-        customer_id=request.data.get('customer_id')
-        establishment_id=request.data.get('establishment_id')
-        firstname=request.data.get('firstname')
-        lastname=request.data.get('lastname')
-        title=request.data.get('title')
-        phone=request.data.get('phone')
+        data=request.data.get('data')
+        if not data:
+         return JsonResponse({"message":"contact list  is empty","status":"400"})
+        for x in data:
+            
+            customer_id=x['customer_id']
+            
+            if not customer_id: 
+                return JsonResponse({"message":" Customer id is required ","status":"400"})
+            
+            if not User.objects.filter(id= customer_id).exists() :
+               return JsonResponse({"message":" Customer id  does not exist","status":"400"})
         
-        if customer_id:
-            if User.objects.filter(id= customer_id).exists() :
-                num = 0
-            else:
-                return JsonResponse({"message":" Customer id  does not exist","status":"400"})
-        else:
-            return JsonResponse({"message":" Customer id is required ","status":"400"})
-        
-        if establishment_id:
-            if Establishment.objects.filter(id= establishment_id).exists() :
-                num = 0
-            else:
-                return JsonResponse({"message":" establishment id  does not exist","status":"400"})
-        else:
-            return JsonResponse({"message":" establishment id is required ","status":"400"})
-        if firstname:
-           firstname = firstname
-        else:
-           return JsonResponse({"message":"firstname field can not be empty ","status":"400"})
-        if lastname:
-           lastname = lastname
-        else:
-           return JsonResponse({"message":"lastname field can not be empty ","status":"400"})
-        if phone:
-           phone = phone
-        else:
-           return JsonResponse({"message":"phone field can not be empty ","status":"400"})
+            establishment_id=x['establishment_id']
+            
+            if not establishment_id:
+                return JsonResponse({"message":" establishment id is required ","status":"400"})
+                
+            if not Establishment.objects.filter(id= establishment_id).exists():
+             return JsonResponse({"message":" establishment id  does not exist","status":"400"})
+             
+            firstname=x['firstname'] 
+            lastname=x['lastname']
+            title=x['title']
+            phone=x['phone']
+            
+        for i in data:
+          customer_id=i['customer_id']
+          establishment_id=i['establishment_id']
+          firstname=i['firstname']
+          lastname=i['lastname']
+          title=i['title']
+          phone=i['phone']
        
-        EstablishmentID = Establishment.objects.get(id=establishment_id)
-        EstablishmentID.EstablishmentID = EstablishmentID
+          EstablishmentID = Establishment.objects.get(id=establishment_id)
+          EstablishmentID.EstablishmentID = EstablishmentID
         
-        user = User.objects.get(id= customer_id)
-        user.user = user
+          user = User.objects.get(id= customer_id)
+          user.user = user
        
-        Cedata=Establishment_Contact.objects.create(customer_id=user,establishment_id=EstablishmentID,firstname=firstname,lastname=lastname,title=title,phone=phone)
-        serializer = Establishment_ContactSerializer(data=Cedata)
-        Cedata.save()
-        dict_data={"customer_id":customer_id,"establishment_id":establishment_id,"firstname":firstname,"lastname":lastname,"title":title,"phone":phone}
-        return JsonResponse({"message":"Your Contact is successfully saved","status":"200","data":dict_data})    
+          Cedata=Establishment_Contact.objects.create(customer_id=user,establishment_id=EstablishmentID,firstname=firstname,lastname=lastname,title=title,phone=phone)
+          serializer = Establishment_ContactSerializer(data=Cedata)
+          Cedata.save()
+          print(Cedata)
+        #   dict_data={"customer_id":customer_id,"establishment_id":establishment_id,"firstname":firstname,"lastname":lastname,"title":title,"phone":phone}
+        return JsonResponse({"message":"Your Contact is successfully saved","status":"200"})    
 
 
 class CustomerAddressView(APIView):
