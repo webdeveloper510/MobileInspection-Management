@@ -99,40 +99,7 @@ class UserLoginSerializer(serializers.ModelSerializer):
 
 
 
-class LeadSerializer(serializers.ModelSerializer):
-     class Meta:
-        model= Lead
-        fields = ['firstname','lastname','phone','email','comment','date','time']
-        extra_kwargs={
-            "firstname":{"error_messages":{"required":"firstname is required"}},
-            "lastname":{"error_messages":{"required":"lastname is required"}},
-            "phone":{"error_messages":{"required":"phone number is required"}},
-            "email":{"error_messages":{"required":"email is required"}},
-            "comment":{"error_messages":{"required":"comment is required"}},
-            "date":{"error_messages":{"required":"date is required"}},
-            "time":{"error_messages":{"required":"time is required"}},
-        }
-           
-     def create(self, validate_data):
-         return Lead.objects.create(**validate_data)
-     
-class LeadAddressSerializer(serializers.ModelSerializer):
-     class Meta:
-        model= LeadAddress
-        fields = ['customer_id','street_number','unit_number','addressline1','addressline2','city','state','postal_code','country_name']
-        extra_kwargs={
-            "customer_id":{"error_messages":{"required":"customer is required"}},
-            "street_number":{"error_messages":{"required":"street_number is required"}},
-            "unit_number":{"error_messages":{"required":"addressline1 is required"}},
-            "addressline2":{"error_messages":{"required":"addressline2 is required"}},
-            "city":{"error_messages":{"required":"city is required"}},
-            "state":{"error_messages":{"required":"state is required"}},
-            "postal_code":{"error_messages":{"required":"postal_code is required"}},
-            "country_name":{"error_messages":{"required":"country_name is required"}},
-        }
-           
-     def create(self, validate_data):
-         return LeadAddress.objects.create(**validate_data)
+
      
 class ServiceSerializer(serializers.ModelSerializer):
      class Meta:
@@ -175,6 +142,104 @@ class ContactSerializer(serializers.HyperlinkedModelSerializer):
      def create(self, validate_data):
          return Contact.objects.create(**validate_data)
      
+
+     
+class AddressSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Address
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Address.objects.create(**validate_data)
+     
+class EstablishmentTypeSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Establishment_type
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Establishment_type.objects.create(**validate_data)
+     
+class EstablishmentSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Establishment
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Establishment.objects.create(**validate_data)
+
+class Establishment_ContactSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Establishment_Contact
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Establishment_Contact.objects.create(**validate_data)
+
+     
+class ServiceorderSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Service_Order
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Service_Order.objects.create(**validate_data)
+     
+class Customer_AddressSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Customer_Address
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Customer_Address.objects.create(**validate_data)
+     
+class UploadpdfSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= uploadpdf
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return uploadpdf.objects.create(**validate_data)
+
+
+
+
+
+# class LeadSerializer(serializers.ModelSerializer):
+#      class Meta:
+#         model= Lead
+#         fields = ['firstname','lastname','phone','email','comment','date','time']
+#         extra_kwargs={
+#             "firstname":{"error_messages":{"required":"firstname is required"}},
+#             "lastname":{"error_messages":{"required":"lastname is required"}},
+#             "phone":{"error_messages":{"required":"phone number is required"}},
+#             "email":{"error_messages":{"required":"email is required"}},
+#             "comment":{"error_messages":{"required":"comment is required"}},
+#             "date":{"error_messages":{"required":"date is required"}},
+#             "time":{"error_messages":{"required":"time is required"}},
+#         }
+           
+#      def create(self, validate_data):
+#          return Lead.objects.create(**validate_data)
+     
+# class LeadAddressSerializer(serializers.ModelSerializer):
+#      class Meta:
+#         model= LeadAddress
+#         fields = ['customer_id','street_number','unit_number','addressline1','addressline2','city','state','postal_code','country_name']
+#         extra_kwargs={
+#             "customer_id":{"error_messages":{"required":"customer is required"}},
+#             "street_number":{"error_messages":{"required":"street_number is required"}},
+#             "unit_number":{"error_messages":{"required":"addressline1 is required"}},
+#             "addressline2":{"error_messages":{"required":"addressline2 is required"}},
+#             "city":{"error_messages":{"required":"city is required"}},
+#             "state":{"error_messages":{"required":"state is required"}},
+#             "postal_code":{"error_messages":{"required":"postal_code is required"}},
+#             "country_name":{"error_messages":{"required":"country_name is required"}},
+#         }
+           
+#      def create(self, validate_data):
+#          return LeadAddress.objects.create(**validate_data)
+
 # class CartSerializer(serializers.ModelSerializer):
 #      class Meta:
 #         model= Cart
@@ -208,51 +273,3 @@ class ContactSerializer(serializers.HyperlinkedModelSerializer):
            
 #      def create(self, validate_data):
 #          return Operater.objects.create(**validate_data)
-     
-class AddressSerializer(serializers.ModelSerializer):
-     class Meta:
-        model= Address
-        fields = '__all__'
-           
-     def create(self, validate_data):
-         return Address.objects.create(**validate_data)
-     
-class EstablishmentSerializer(serializers.ModelSerializer):
-     class Meta:
-        model= Establishment
-        fields = '__all__'
-           
-     def create(self, validate_data):
-         return Establishment.objects.create(**validate_data)
-     
-class ServiceorderSerializer(serializers.ModelSerializer):
-     class Meta:
-        model= Service_Order
-        fields = '__all__'
-           
-     def create(self, validate_data):
-         return Service_Order.objects.create(**validate_data)
-     
-class Customer_AddressSerializer(serializers.ModelSerializer):
-     class Meta:
-        model= Customer_Address
-        fields = '__all__'
-           
-     def create(self, validate_data):
-         return Customer_Address.objects.create(**validate_data)
-     
-class UploadpdfSerializer(serializers.ModelSerializer):
-     class Meta:
-        model= uploadpdf
-        fields = '__all__'
-           
-     def create(self, validate_data):
-         return uploadpdf.objects.create(**validate_data)
-
-class Establishment_ContactSerializer(serializers.ModelSerializer):
-     class Meta:
-        model= Establishment_Contact
-        fields = '__all__'
-           
-     def create(self, validate_data):
-         return Establishment_Contact.objects.create(**validate_data)

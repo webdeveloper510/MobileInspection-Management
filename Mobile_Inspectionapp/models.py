@@ -15,7 +15,7 @@ class User(models.Model):
     mobile=PhoneNumberField(null=False)
     attribute_name=models.CharField(max_length=50, null=False,default="")
     password = models.CharField(max_length=250,null=False)
-    ifLogged  = models.BooleanField(default=False)
+    ifLogged  = models.BooleanField(default=True)
     token = models.CharField(max_length=500, null=True, default="")
     
     
@@ -145,7 +145,6 @@ class Establishment(models.Model):
     establishment_type_id=models.ForeignKey(Establishment_type, on_delete=models.CASCADE,blank=True,null=True)
     
 class Establishment_Contact(models.Model):
-    customer_id= models.ForeignKey(User, on_delete=models.CASCADE ,null=True)
     establishment_id= models.ForeignKey(Establishment, on_delete=models.CASCADE ,null=True)
     firstname=models.CharField(max_length=250,null=True)
     lastname=models.CharField(max_length=250,null=True)

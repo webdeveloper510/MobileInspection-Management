@@ -79,4 +79,4 @@ class uploadpdfAdmin(admin.ModelAdmin):
   
 @admin.register(Establishment_Contact)
 class Establishment_ContactfAdmin(admin.ModelAdmin):
-  list_display = ('id','customer_id','establishment_id','firstname','lastname','title','phone')  
+  list_display = ('id','establishment_id','firstname','lastname','title','phone')  

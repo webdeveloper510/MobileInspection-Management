@@ -17,13 +17,16 @@ urlpatterns = [
     path('Address/',AddressView.as_view(),name='address'),
     path('addaddress/',AddAddressView.as_view(),name='addaddress'),
     path('Establishment/',EstablishmentView.as_view(),name='establish'),
+    path('establishmenttype/',EstablishmenttypeView.as_view(),name='establishtype'),
     path('Establishmentregister/',EstablishmentRegisterView.as_view(),name='eastablishment-Register'),
     path('update_eastablishment_address/',UpdateEastablishmentAddressView.as_view(),name='eastablishment-update-address'),
     path('contact_establishment/',ContactEstablishmentView.as_view(),name='establish-contact'),
     path('customeraddress/<int:pk>/',CustomerAddressView.as_view(),name='customer_address'),
     path('pdf/',pdfview.as_view(),name="pdf"),
     path('profile/<int:pk>',CustomerProfileView.as_view(),name="profile"),
-    # path('test/',TestView.as_view(),name="test"),
+    path('test/',TestSectionView.as_view()),
+    # path('testp/',TestSectionView)
+    # path('logout/',LogoutUser.as_view(),name="test"),
 
     
     

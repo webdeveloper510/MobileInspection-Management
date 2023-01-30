@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import action
 from .validater import *
 from django.http import JsonResponse
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken,AccessToken
 from rest_framework.permissions import IsAuthenticated ,AllowAny
 from django.http import Http404
 from rest_framework.decorators import  permission_classes
@@ -81,8 +81,7 @@ class UserLoginView(APIView):
     def post(self, request, format=None):
         emaild=request.data.get('email')
         password=request.data.get('password')
-        user=User.objects.filter(email=emaild).values('ifLogged','email','password','mobile')
-
+        
         if emaild=='' or password == '':
             return JsonResponse({"message":"Email or PAssword Required","status":"400","data":{}})
             
@@ -91,9 +90,13 @@ class UserLoginView(APIView):
             return JsonResponse({"message":"wrong Email id or password","status":"400","data":{}})
         
         else:
-            user=User.objects.filter(email=emaild).update(ifLogged=True)
+            # user=User.objects.filter(email=emaild).update(ifLogged=True)
+            user = User.objects.get(email=emaild)
             userdetail=User.objects.filter(email=emaild).values('id','First_name','Last_name','email','mobile','title','attribute_name')
             print("print--- detail",userdetail[0]['First_name'])
+            token=get_tokens_for_user(user)
+            # print("user-----",User)
+            print(token)
             data={'id':str(userdetail[0]['id']),'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name']}
             return JsonResponse({'message':'Login Successfull','status':'200','data':data})
         
@@ -148,12 +151,12 @@ class CustomerProfileView(APIView):
             return JsonResponse({"status":"200","message":"success","data":data})
         else:
             return JsonResponse({"status":"400","message":"user does not Exist"})   
-            
-# class LogoutUser(APIView):
-# #   permission_classes = [IsAuthenticated]
-#   authentication_classes = [TokenAuthentication]
-#   def post(self, request, format=None):
-#     return Response({'msg':'Logout Successfully'},status=status.HTTP_200_OK)
+from rest_framework import generics  
+         
+class LogoutUser(generics.GenericAPIView):
+  permission_classes = [IsAuthenticated]
+  def post(self, request, format=None):
+    return Response({'msg':'Logout Successfully'})
     
 class ServiceAgreementView(APIView):
    
@@ -307,6 +310,19 @@ class AddAddressView(APIView):
     return JsonResponse({"message":"your  adddress is successfully saved","status":"200"})  
     
 # Establishment related api    
+class EstablishmenttypeView(APIView):
+    def get(self, request, format=None):
+        service = Establishment_type.objects.all().order_by('id')
+        serializer = EstablishmentTypeSerializer(service, many=True)
+        array=[]
+        for x in serializer.data:
+          id=(x['id'])
+          establishment_type= (x['Establishment_type'])
+          title=(x['title'])
+          data={"id":str(id),"establishment_type":establishment_type,"title":title}
+          array.append(data)
+        return JsonResponse({ "status": "200","message": "Success","data":array})
+
 class EstablishmentView(APIView):
     def get(self, request, format=None):
         service = Establishment.objects.all().order_by('id')
@@ -394,19 +410,18 @@ class ContactEstablishmentView(APIView):
     @csrf_exempt 
     @action(detail=False, methods=['post'])
     def post(self, request, format=None):
+        customer_id=request.data.get('customer_id')
         data=request.data.get('data')
-        if not data:
-         return JsonResponse({"message":"contact list  is empty","status":"400"})
-        for x in data:
-            
-            customer_id=x['customer_id']
-            
-            if not customer_id: 
+        if not customer_id: 
                 return JsonResponse({"message":" Customer id is required ","status":"400"})
             
-            if not User.objects.filter(id= customer_id).exists() :
+        if not User.objects.filter(id= customer_id).exists() :
                return JsonResponse({"message":" Customer id  does not exist","status":"400"})
-        
+           
+        if not data:
+         return JsonResponse({"message":"contact list  is empty","status":"400"})
+     
+        for x in data:
             establishment_id=x['establishment_id']
             
             if not establishment_id:
@@ -421,7 +436,6 @@ class ContactEstablishmentView(APIView):
             phone=x['phone']
             
         for i in data:
-          customer_id=i['customer_id']
           establishment_id=i['establishment_id']
           firstname=i['firstname']
           lastname=i['lastname']
@@ -430,11 +444,8 @@ class ContactEstablishmentView(APIView):
        
           EstablishmentID = Establishment.objects.get(id=establishment_id)
           EstablishmentID.EstablishmentID = EstablishmentID
-        
-          user = User.objects.get(id= customer_id)
-          user.user = user
        
-          Cedata=Establishment_Contact.objects.create(customer_id=user,establishment_id=EstablishmentID,firstname=firstname,lastname=lastname,title=title,phone=phone)
+          Cedata=Establishment_Contact.objects.create(establishment_id=EstablishmentID,firstname=firstname,lastname=lastname,title=title,phone=phone)
           serializer = Establishment_ContactSerializer(data=Cedata)
           Cedata.save()
           print(Cedata)
@@ -607,13 +618,57 @@ class pdfview(APIView):
 
 
     
+class TestSectionView(APIView):
+ renderer_classes=[UserRenderer] 
+ def post(self,request,format=None):
+    establishmentdata=request.data.get('establishmentdata')
+    addressdata=request.data.get('addressdata')
     
+    if establishmentdata:
+        for m in establishmentdata:
+            customer_id=m['customer_id']
+            establishment_type_id=m['establishment_type_id']
+            name=m['name'] 
+        for l in establishmentdata:
+            customer_id=l['customer_id']
+            name=l['name']
+            establishment_type_id=l['establishment_type_id']
+            user = User.objects.get(id= customer_id)
+            user.user = user  
+            EstablishmentID = Establishment_type.objects.get(id= establishment_type_id)
+            EstablishmentID.EstablishmentID =EstablishmentID
+            esdata=Establishment.objects.create(customer_id=user ,name=name,establishment_type_id=EstablishmentID)
+            serializer = EstablishmentSerializer(data=esdata)
+            esdata.save()
+            print(esdata)
+    if addressdata:
+        for j in addressdata:
+            unit_number=j['unit_number']
+            address=j['address']
+            city=j['city']
+            state=j['state']
+            country=j['country']
+            zip_code=j['zip_code']
+        
+            addressdat=Address.objects.create(unit_number=unit_number,addressline1=address,city=city,state=state,postal_code=zip_code,country_name=country)
+            serializer = AddressSerializer(data=addressdat)
+            addressdat.save()
+            print(j,address)
+      
+    return JsonResponse({"message":" Data created Successfully ","status":"400"})
+
+     
+        
+          
+        
+      
+   
     
 
 
 
 
-# class EstablishmentRegisterView(APIView):
+# class TestSectionView(APIView):
 #  renderer_classes=[UserRenderer]
 #  def post(self,request,format=None):
 #     customer_id = request.data.get('customer_id')
