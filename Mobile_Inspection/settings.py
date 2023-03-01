@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Mobile_Inspectionapp',
+    'payment_app',
     'corsheaders',
     'rest_framework',
     'phonenumber_field',
@@ -67,7 +68,7 @@ ROOT_URLCONF = 'Mobile_Inspection.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -90,11 +91,13 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        
+
 ],
- 'DEFAULT_AUTHENTICATION_CLASSES': [
-    'rest_framework_simplejwt.authentication.JWTAuthentication',
-]
+    'DEFAULT_PERMISSION_CLASSES': [
+       'rest_framework.permissions.IsAuthenticated',
+       'rest_framework.permissions.IsAdminUser',
+
+       ]
 }
 
 REST_FRAMEWORK = {
@@ -102,6 +105,7 @@ REST_FRAMEWORK = {
           'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
+
 
 
 DATABASES = {
@@ -169,8 +173,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://intuitiveagilesolution.com:8000",
     "http://54.201.14.154:8000",
-    "http://54.201.14.154"
-]
+    "http://54.201.14.154",
+    "http://3.90.226.115",
+    "https://inspectionsquad.com"
+    ]
 
 STATICFILES_DIRS = [
     BASE_DIR,"static"
@@ -184,8 +190,11 @@ BASE_URL="http://127.0.0.1:8000"
 
 # JWT Settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=20),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'UPDATE_LAST_LOGIN': True,
 
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
@@ -196,7 +205,16 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
     'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
-
     'JTI_CLAIM': 'jti',
 
 }
+
+
+#Stripe
+API_PUBLISH_KEY = 'pk_test_51LPgvJSCZHeL5pu7gAZj0T4rKVgF7sz5bMw33dwmb6Op8roRAQrndgwigkWg18KcyCZxzdvEcZ7HMQdqR7djgqB800VE0ceDOE'
+API_SECRET_KEY = 'sk_test_51LixZiJTvBqbiOKnTOF6W6uR1T0f8DMSg6vcAIgyUbTsglCBVOtFy3EK0RlNOVet8OIaXczjMx24otCXwbBd2Msm00PQNhYgJr'
+
+#Paypal
+CLIENT_ID = "AX9P-8jP99mWNZRPloqJSLpctke8tx2XgX5op8FxjRTm7kPKkiZDPqSX5KhVHgey5fOwC1bLVfo6HFLy"
+CLIENT_SECRET = "EPFUa2WBKlClB4wi5-pq6vyB-pdwivcxz_UK0rBtu7GQMgKQmwc-YVna5JXMzr_6nR6Ym8tFioyT8gM4"
+

@@ -8,9 +8,6 @@ from uuid import uuid4
 from .validater import *
 from phonenumber_field.serializerfields import PhoneNumberField
 
-
-
-
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all())],required=True
@@ -33,21 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
         #     'password': {'error_messages': {'required': "password is required",'blank':'please Enter a password'}},
         #     'mobile': {'error_messages': {'required': "mobile is required",'blank':'please Enter a mobile'}},
         #           }
-        
-  
- 
-    # def validate(self, attrs):
-    #     email = attrs.get('email')
-    #     print(email)
-    #     if User.objects.filter(email=email).exists():
-    #         user = User.objects.get(email = email)
-    #         data = {
-    #             'message':'User Already Exists',
-    #             'status':"400",
-    #             "data":{}
-    #         }
-    #     return Response(238923895)
-    
+       
     def create(self, validate_data):
      return User.objects.create(**validate_data)
    
@@ -98,9 +81,7 @@ class UserLoginSerializer(serializers.ModelSerializer):
         )
 
 
-
-
-     
+ 
 class ServiceSerializer(serializers.ModelSerializer):
      class Meta:
         model= Service

@@ -48,23 +48,23 @@ class EstablishmentAdmin(admin.ModelAdmin):
   list_display = ('id','customer_id','address_id','name','establishment_type_id')
 @admin.register(Establishment_type)
 class Establishment_typeAdmin(admin.ModelAdmin):
-  list_display = ('id','Establishment_type','title')
+  list_display = ('id','Establishment_type')
 @admin.register(Service_Order)
 class Service_OrderAdmin(admin.ModelAdmin):
   list_display = ('id','User_id','service_id','order_status','operater_id','service_datetime','service_fee','total_amount','requested_service_datetime','Establishment_id')
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
-  list_display = ('id','unit_number','addressline1','city','state','postal_code','country_name')
+  list_display = ('id','customer_id','unit_number','addressline1','city','state','postal_code','country_name')
 @admin.register(Promotion_Category)
 class Promotion_CategoryAdmin(admin.ModelAdmin):
   list_display = ('id','promotion_id','service_type_id')
 @admin.register(Promotion)
 class PromotionAdmin(admin.ModelAdmin):
-  list_display = ('id','name','description','discount_rate','start_date','end_date')
+  list_display = ('id','name','promocode','discount_rate','start_date','end_date')
 
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
-  list_display = ('id','firstname','lastname','email','phone','street_number','address','city','state','country','zipcode')
+  list_display = ('id','firstname','lastname','email','phone','address','city','state','country','zipcode','comment')
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
@@ -79,4 +79,4 @@ class uploadpdfAdmin(admin.ModelAdmin):
   
 @admin.register(Establishment_Contact)
 class Establishment_ContactfAdmin(admin.ModelAdmin):
-  list_display = ('id','establishment_id','firstname','lastname','title','phone')  
+  list_display = ('id','establishment_id','customer_id','firstname','lastname','title','phone')  

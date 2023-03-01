@@ -4,7 +4,12 @@ from .validater import *
 from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib.auth.hashers import make_password
 from django.core.validators import MinValueValidator,MaxValueValidator
+from django.contrib.auth.models import AbstractBaseUser
 # from django_cryptography.fields import encrypt
+
+
+
+
 
 
 class User(models.Model):
@@ -15,18 +20,21 @@ class User(models.Model):
     mobile=PhoneNumberField(null=False)
     attribute_name=models.CharField(max_length=50, null=False,default="")
     password = models.CharField(max_length=250,null=False)
+    position=models.CharField(max_length=250,null=False,default="")
     ifLogged  = models.BooleanField(default=True)
     token = models.CharField(max_length=500, null=True, default="")
     
+    # USERNAME_FIELD = "email"
+ 
     
 
-    def __str__(self):
-        return "{}".format( self.email) 
+#     def __str__(self):
+#         return "{}".format(  self.id) 
     
-    # def save(self, *args, **kwargs):
+#     # def save(self, *args, **kwargs):
          
-    #     self.password = make_password(self.password)
-    #     super(User,self).save(*args, **kwargs)
+#     #     self.password = make_password(self.password)
+#     #     super(User,self).save(*args, **kwargs)
     
     
      
@@ -95,23 +103,15 @@ class Service_Image(models.Model):
     #     return "{} ".format(self.service_type_id) 
     
 class Promotion(models.Model):
-    name=models.CharField(max_length=500,null=False)
-    description=models.TextField(max_length=1000,null=False)
-    discount_rate = models.FloatField()
+    name=models.CharField(max_length=500,null=True,blank=True)
+    promocode=models.CharField(max_length=500,null=True,blank=True)
+    discount_rate=models.CharField(max_length=500)
     start_date=models.DateField()
     end_date=models.DateField()
     
-    # def __str__(self):
-    #     return "{} -{}".format(self.name)     
-
 class Promotion_Category(models.Model):
     promotion_id= models.ForeignKey(Promotion, on_delete=models.CASCADE)
     service_type_id= models.ForeignKey(ServiceType, on_delete=models.CASCADE)
-    
-    # def __str__(self):
-    #     return "{} -{}".format(self.service_type_id) 
-    
-
     
 class Operater(models.Model):
     firstname=models.CharField(max_length=500,null=False)
@@ -123,6 +123,7 @@ class Operater(models.Model):
     operater_type=models.CharField(max_length=500,null=False)
 
 class Address(models.Model):
+    customer_id = models.ForeignKey(User, on_delete=models.CASCADE,blank=True,null=True)
     unit_number=models.CharField(max_length=500,null=False)
     addressline1=models.CharField(max_length=500,null=False)
     city=models.CharField(max_length=500,null=False)
@@ -135,8 +136,8 @@ class Customer_Address(models.Model):
     address_id=models.ForeignKey(Address, on_delete=models.CASCADE,blank=True,null=True)
 
 class Establishment_type(models.Model):
-    Establishment_type=models.CharField(max_length=250,null=False)
-    title=models.CharField(max_length=250,null=False)
+    Establishment_type=models.CharField(max_length=250,null=True, blank= True)
+   
     
 class Establishment(models.Model):
     customer_id = models.ForeignKey(User, on_delete=models.CASCADE ,blank=True,null=True)
@@ -146,10 +147,12 @@ class Establishment(models.Model):
     
 class Establishment_Contact(models.Model):
     establishment_id= models.ForeignKey(Establishment, on_delete=models.CASCADE ,null=True)
+    customer_id=models.CharField(max_length=50,null=False)
     firstname=models.CharField(max_length=250,null=True)
     lastname=models.CharField(max_length=250,null=True)
     title=models.CharField(max_length=250,null=True)
     phone=PhoneNumberField(max_length=250,null=True)
+
     
     
 class Service_Order(models.Model):
@@ -172,10 +175,8 @@ class Contact(models.Model):
     lastname=models.CharField(max_length=500,null=True,blank=True)
     email=models.EmailField(blank=True)
     phone=PhoneNumberField(null=True,blank=True)
-    street_number=models.CharField(max_length=500,null=True,blank=True)
-    unit_number=models.CharField(max_length=500,null=True,blank=True)
     address=models.CharField(max_length=500,null=True,blank=True)
-    address1=models.CharField(max_length=500,null=True,blank=True)
+    unit_number=models.CharField(max_length=500,null=True,blank=True)
     city=models.CharField(max_length=500,null=True,blank=True)
     state=models.CharField(max_length=500,null=True,blank=True)
     country=models.CharField(max_length=500,null=True,blank=True)
