@@ -4,8 +4,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.authtoken import views
 
+
 urlpatterns = [
     path('login/',UserLoginView.as_view(),name='login'),
+    path('logout/',Logout.as_view(),name='logout'),
     path('password_set/',PasswordSetViewSet.as_view()),
     path('register/',RegisterView.as_view(),name='register'),
     path('resetpasswordlink/',SendPasswordResetLink.as_view(), name='send-reset-password link'),
@@ -36,6 +38,7 @@ urlpatterns = [
     path('profileupdate/',Profileupdate.as_view(),name="update"),
     path('promocode_discount/',PromocodeDiscountView.as_view(),name="promo"),
     path('establishment_contact_list/<int:pk>',Establishment_contact_listView.as_view()),
+    
 
     # path('logout/',LogoutUser.as_view(),name="test"),
 ]

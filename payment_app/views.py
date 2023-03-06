@@ -20,8 +20,10 @@ import base64
 import requests
 import json
 from django.http import Http404
-import jsons
-from collections import Counter  
+from django.http import HttpResponse
+from django.template import loader
+
+
 
 # stripe.api_key = "sk_test_51LPgvJSCZHeL5pu7SqTRBpyfjYVYhGdBlo5SUHN5SvepjI1src0BRZbw01Ts5wivliYs8ID6MtTLVviRDhxmCb1I00x3mr3DGr"
 stripe.api_key=settings.API_SECRET_KEY
@@ -305,7 +307,6 @@ class StripePaymentViewSet(APIView):
 
 class TestSectionView(APIView):
   pass
-
       
 class PaypalPaymentViewSet(viewsets.ViewSet):
     @csrf_exempt 
@@ -351,21 +352,18 @@ class PaypalPaymentViewSet(viewsets.ViewSet):
                         # "order_id": checkout_id
                     } } ],
                 "application_context": {
-                    "return_url": "http://127.0.0.1:8000/templates/thankyou.html",
-                    "cancel_url": "https://example.com/cancel"
+                    "return_url": "http://127.0.0.1:8000/paymentsuccess/",
+                    "cancel_url": "http://127.0.0.1:8000/cancelpayment/"
                 } })
                 headers = {"Content-Type": "application/json", "Authorization": 'Bearer '+paypal_access_token}
                 create_order_response = requests.request("POST", "https://api-m.sandbox.paypal.com/v2/checkout/orders", headers=headers, data=payload)
                 create_order_response = create_order_response.json()
-                # print(create_order_response)
                 approval_link = create_order_response['links'][1]['href']
-                # print(approval_link)
                 paypal_order_id = create_order_response['id']
                 capture = create_order_response['links'][3]['href']
-                # print(capture)
                 if not Order.objects.filter(id=order_id).exists():
-                    # order_data = Order.objects.create(checkout_id=checkout_id, payment_type="paypal",amount=checkout_data.subtotal,status="pending")
-                    pass
+                    order_data = Order.objects.create(order_id=order_id, payment_type="paypal",amount=checkout_data.subtotal,status="pending")
+                    
                 else:
                     order_id = Order.objects.filter(id=order_id).values('id')
                     order_id = order_id[0]['id']
@@ -373,7 +371,7 @@ class PaypalPaymentViewSet(viewsets.ViewSet):
                         capture_paypal_payment.objects.create(order_id=order_id,capture_url=capture, status="pending")
                     else:
                         capture_paypal_payment.objects.filter(order_id=order_id).update(capture_url=capture)
-                    return Response({"message":"order created","approval_link":approval_link,"paypal_access_token":paypal_access_token,"capture_url":capture,"status":"200"})
+                    return Response({"message":"order created","approval_link":approval_link,"paypal_access_token":paypal_access_token,"status":"200"})
         return Response(approval_link)
     
     @csrf_exempt 
@@ -381,22 +379,20 @@ class PaypalPaymentViewSet(viewsets.ViewSet):
     def capture_payment(self, request, *args, **kwargs):
         paypal_access_token = paypal_token.objects.all().first()
         paypal_access_token = getattr(paypal_access_token, 'paypal_access_token')
-        print("token----",paypal_access_token)
         order_id = request.data.get('order_id')
         if not capture_paypal_payment.objects.filter(order_id=order_id).exists():
-            return Response("checkout id does not exist")
+            return Response({"message":"order id does not exist","status":"400"})
         else:
-            obj = capture_paypal_payment.objects.filter(status="pending", order_id=order_id).values('id','capture_url','order_id')
+            obj = capture_paypal_payment.objects.filter(status="pending",order_id=order_id).values('id','capture_url','order_id')
             # capture_url = getattr(obj, 'capture_url')
             capture_url=obj[0]['capture_url']
             # order_id = int(getattr(obj, 'order_id'))
             order_id=obj[0]['order_id']
             # capture_paypal_payment_id = int(getattr(obj, 'id'))
             capture_paypal_payment_id=obj[0]['id']
-            headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer '+paypal_access_token}
+            headers = {'Content-Type': 'application/json','Authorization': 'Bearer '+paypal_access_token}
             response = requests.request("POST", capture_url, headers=headers)
             response = response.json()
-            print("response------",response)
             if 'status' in response: 
                 paypal_order_id = response['id']
                 payer_id = response['payer']['payer_id']     
@@ -410,8 +406,28 @@ class PaypalPaymentViewSet(viewsets.ViewSet):
                 if str(response['status']) == "COMPLETED":
                     order_data = Order.objects.filter(id=order_id,payment_type="paypal").update(status='completed')
                     capture_paypal_payment_data = capture_paypal_payment.objects.filter(id=capture_paypal_payment_id).update(status="completed")
-                return Response({"msg":"payment completed","status":"200_OK"})
-        return Response({"msg":"payment is not captured as payment is not approved by user."})
+                return Response({"message":"payment success","status":"200"})
+        return Response({"message":"payment is not captured as payment is not approved by user.","status":"400"})
     
     
-      
+def index(request):
+  template = loader.get_template('thankyou.html')
+  return HttpResponse(template.render())  
+
+def cancel(request):
+  template = loader.get_template('cancel.html')
+  return HttpResponse(template.render())  
+
+
+from django.core.mail import send_mail
+def test(request):
+  send_mail(
+    'hello Gurepreet',
+    'Whats upp',
+    'deepika@codenomad.net',
+    ['gurpreet@codenomad.net'],
+    fail_silently=False,
+)
+  template =loader.get_template('test.html')
+  return HttpResponse(template.render())  
+ 

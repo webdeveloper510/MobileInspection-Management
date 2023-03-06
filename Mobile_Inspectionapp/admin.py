@@ -61,7 +61,6 @@ class Promotion_CategoryAdmin(admin.ModelAdmin):
 @admin.register(Promotion)
 class PromotionAdmin(admin.ModelAdmin):
   list_display = ('id','name','promocode','discount_rate','start_date','end_date')
-
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
   list_display = ('id','firstname','lastname','email','phone','address','city','state','country','zipcode','comment')
@@ -69,6 +68,7 @@ class ContactAdmin(admin.ModelAdmin):
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
   list_display = ('id','service_id','created_at','updated_at')
+
 @admin.register(Customer_Address)
 class Customer_AddressAdmin(admin.ModelAdmin):
   list_display = ('id','customer_id','address_id')
@@ -76,7 +76,7 @@ class Customer_AddressAdmin(admin.ModelAdmin):
 @admin.register(uploadpdf)
 class uploadpdfAdmin(admin.ModelAdmin):
   list_display = ('id','uploadfile')
-  
+
 @admin.register(Establishment_Contact)
 class Establishment_ContactfAdmin(admin.ModelAdmin):
   list_display = ('id','establishment_id','customer_id','firstname','lastname','title','phone')  

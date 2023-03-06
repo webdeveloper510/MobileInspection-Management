@@ -10,5 +10,8 @@ urlpatterns = [
      # path('test/',TestSectionView.as_view()),
      path('paypal/order/', views.PaypalPaymentViewSet.as_view({'post':'create_order'})),
      path('paypal/capture/', views.PaypalPaymentViewSet.as_view({'post':'capture_payment'})),
+     path('paymentsuccess/',views.index),
+     path('cancelpayment/',views.cancel),
+     path('test/',views.test),
 
 ]

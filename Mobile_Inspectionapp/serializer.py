@@ -33,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
        
     def create(self, validate_data):
      return User.objects.create(**validate_data)
-   
+
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
@@ -80,6 +80,15 @@ class UserLoginSerializer(serializers.ModelSerializer):
             'token',
         )
 
+class UserLoginSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(max_length=250)
+    class Meta:
+        model=User
+        fields=['email','password']
+        extra_kwargs={
+        'email': {'error_messages': {'required': "email is required",'blank':'please provide a email'}},
+        'password': {'error_messages': {'required': "password is required",'blank':'please Enter a password'}}
+    }
 
  
 class ServiceSerializer(serializers.ModelSerializer):

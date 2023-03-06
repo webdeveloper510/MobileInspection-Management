@@ -218,3 +218,11 @@ API_SECRET_KEY = 'sk_test_51LixZiJTvBqbiOKnTOF6W6uR1T0f8DMSg6vcAIgyUbTsglCBVOtFy
 CLIENT_ID = "AX9P-8jP99mWNZRPloqJSLpctke8tx2XgX5op8FxjRTm7kPKkiZDPqSX5KhVHgey5fOwC1bLVfo6HFLy"
 CLIENT_SECRET = "EPFUa2WBKlClB4wi5-pq6vyB-pdwivcxz_UK0rBtu7GQMgKQmwc-YVna5JXMzr_6nR6Ym8tFioyT8gM4"
 
+#Email Configration
+EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587 #465#
+EMAIL_HOST_USER = "deepika@codenomad.net"
+EMAIL_HOST_PASSWORD = "199428october"
+EMAIL_USE_TLS = True
+PASSWORD_RESET_TIMEOUT= 900 #sec=15 minutes, 

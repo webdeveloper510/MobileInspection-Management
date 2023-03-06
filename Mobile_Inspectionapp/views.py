@@ -17,9 +17,8 @@ from django.conf import settings
 from rest_framework.authtoken.models import Token
 from datetime import date 
 from django.contrib.auth import authenticate
-
-
-
+from django.db.models import Q 
+from uuid import uuid4
 
 
 
@@ -87,24 +86,38 @@ class UserLoginView(APIView):
     @action(detail=False, methods=['post'])
     @permission_classes((AllowAny,))
     def post(self, request, format=None):
-        username=request.data.get('email')
+        emailid=request.data.get('email')
         password=request.data.get('password')
-        if username=='' or password == '':
+        
+        if emailid=='' or password == '':
             return JsonResponse({"message":"Email or PAssword Required","status":"400","data":{}})
             
-        if not User.objects.filter(email=username , password = password).values('email', 'password') :
+        if not User.objects.filter(email=emailid , password=password).values('email', 'password') :
             
             return JsonResponse({"message":"wrong Email id or password","status":"400","data":{}})
         
         else:
-            # user=User.objects.filter(email=emaild).update(ifLogged=True)
-            user = User.objects.get(email=username)
-            userdetail=User.objects.filter(email=username).values('id','First_name','Last_name','email','mobile','title','attribute_name','position')
-            print("print--- detail",userdetail[0]['First_name'])
-            # token=get_tokens_for_user(user)
-            # print(token)
-            data={'id':str(userdetail[0]['id']),'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name'],'position':userdetail[0]['position']}
-            return JsonResponse({'message':'Login Successfull','status':'200','data':data})
+            user=User.objects.filter(email=emailid).update(ifLogged=True)
+            ifLoggedvalue=User.objects.filter(email=emailid).values('ifLogged')
+            value=ifLoggedvalue[0]['ifLogged']
+            if value == True:
+                token=uuid4()
+                user=User.objects.filter(email=emailid).update(token=token)
+                userdetail=User.objects.filter(email=emailid).values('id','First_name','Last_name','email','mobile','title','attribute_name','position')
+                data={'id':str(userdetail[0]['id']),'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name'],'position':userdetail[0]['position']}
+                return JsonResponse({'message':'Login Successfull','status':'200','token':token,'data':data})
+
+class Logout(APIView):
+    def post(self, request, format=None):
+     token=request.data.get('token')
+     if not token:
+          return JsonResponse({"message":"please provide detail Authentication "})
+     if not User.objects.filter(token=token).values('token'):
+         return JsonResponse({"message":"invalid token"})
+     else:
+        user = User.objects.filter(token=token).values('token','id')
+        userid=user[0]['id']    
+        return JsonResponse({'message':'logout successfully','status':'200'})
         
 class SendPasswordResetLink(APIView):  
     @csrf_exempt 
