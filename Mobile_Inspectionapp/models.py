@@ -4,40 +4,40 @@ from .validater import *
 from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib.auth.hashers import make_password
 from django.core.validators import MinValueValidator,MaxValueValidator
+from django.contrib.auth.models import AbstractBaseUser,BaseUserManager
+from .manager import *
+from django.contrib.auth.models import UserManager
 from django.contrib.auth.models import AbstractBaseUser
-# from django_cryptography.fields import encrypt
+from django.contrib.auth.models import PermissionsMixin
+from django.utils.translation import gettext_lazy as _
 
-
-
-
-
-
-class User(models.Model):
+class User(AbstractBaseUser,PermissionsMixin):
+  
     First_name = models.CharField(max_length=50, null=False,default="")
     Last_name = models.CharField(max_length=50, null=False,default="")
-    email = models.EmailField(max_length=50, null=False,default="")
+    email = models.EmailField(max_length=50, null=False,default="",unique=True,verbose_name ="username")
     title=models.CharField(max_length=50, null=False,default="")
+    role=models.CharField(max_length=50, null=False,default="")
     mobile=PhoneNumberField(null=False)
     attribute_name=models.CharField(max_length=50, null=False,default="")
     password = models.CharField(max_length=250,null=False)
     position=models.CharField(max_length=250,null=False,default="")
     ifLogged  = models.BooleanField(default=True)
-    token = models.CharField(max_length=500, null=True, default="")
+    token = models.CharField(max_length=500, null=True, default="",blank=True)
+    # username = models.CharField(max_length=50, null=False,default="None")
+    is_staff  = models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.')
+    is_active   = models.BooleanField(default=True,
+    help_text='Designates whether this user should be treated as active.\
+    Unselect this instead of deleting accounts.')
+    created_at = models.DateTimeField(auto_now_add=True,null=True)
+    updated_at =  models.DateTimeField(auto_now=True)
     
-    # USERNAME_FIELD = "email"
- 
-    
+    objects = UserManager()
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ['username']
+  
 
-#     def __str__(self):
-#         return "{}".format(  self.id) 
     
-#     # def save(self, *args, **kwargs):
-         
-#     #     self.password = make_password(self.password)
-#     #     super(User,self).save(*args, **kwargs)
-    
-    
-     
 class Lead(models.Model):
     firstname=models.CharField(max_length=500,null=False)
     lastname=models.CharField(max_length=500,null=False)

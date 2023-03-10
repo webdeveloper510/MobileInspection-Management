@@ -35,62 +35,6 @@ class UserSerializer(serializers.ModelSerializer):
      return User.objects.create(**validate_data)
 
 
-
-class UserLoginSerializer(serializers.ModelSerializer):
-    
-    email = serializers.EmailField()
-    password = serializers.CharField()
-    token = serializers.CharField(required=False, read_only=True)
-
-    def validate(self, data):
-        # user,email,password validator
-        email = data.get("email", None)
-        password = data.get("password", None)
-        if not email and not password:
-            raise ValidationError("Details not entered.")
-        user = None
-        # if the email has been passed
-        if '@' in email:
-            user = User.objects.filter(
-                Q(email=email) &
-                 Q(password=password)
-                ).distinct()
-            if not user.exists():
-                raise ValidationError("User credentials are not correct.")
-            user = User.objects.get(email=email)
-        if user.ifLogged:
-            data={"message":"User already logged in.","status":"400","data":{}}
-            raise serializers.ValidationError({"data":data})
-        user.ifLogged = True
-        data['token'] = uuid4()
-        user.token = data['token']
-        user.save()
-        return data
-
-
-    class Meta:
-        model = User
-        fields = (
-            'email',
-            'password',
-            'token',
-        )
-
-        read_only_fields = (
-            'token',
-        )
-
-class UserLoginSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(max_length=250)
-    class Meta:
-        model=User
-        fields=['email','password']
-        extra_kwargs={
-        'email': {'error_messages': {'required': "email is required",'blank':'please provide a email'}},
-        'password': {'error_messages': {'required': "password is required",'blank':'please Enter a password'}}
-    }
-
- 
 class ServiceSerializer(serializers.ModelSerializer):
      class Meta:
         model= Service

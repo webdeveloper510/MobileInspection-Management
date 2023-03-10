@@ -185,7 +185,7 @@ MEDIA_ROOT = BASE_DIR /"static/media"
 MEDIA_URL = "/media/"
 BASE_URL="http://127.0.0.1:8000"
 
-# AUTH_USER_MODEL = 'Mobile_Inspectionapp.User'
+AUTH_USER_MODEL = 'Mobile_Inspectionapp.user'
 
 
 # JWT Settings
@@ -211,12 +211,12 @@ SIMPLE_JWT = {
 
 
 #Stripe
-API_PUBLISH_KEY = 'API_PUBLISH_KEY'
-API_SECRET_KEY = 'API_SECRET_KEY'
+API_PUBLISH_KEY = 'pk_test_51LixZiJTvBqbiOKnPcS69thhnqhwWqXz4RZteSKyoBjG1CytGinFMveOjGlNUqE7F9AZYpJRasUy1uwhxSrpZvoO008CcnCRNR'
+API_SECRET_KEY = 'sk_test_51LixZiJTvBqbiOKnTOF6W6uR1T0f8DMSg6vcAIgyUbTsglCBVOtFy3EK0RlNOVet8OIaXczjMx24otCXwbBd2Msm00PQNhYgJr'
 
 #Paypal
-CLIENT_ID = "CLIENT_ID"
-CLIENT_SECRET = "CLIENT_SECRET"
+CLIENT_ID = "AZbSbes1HlwmiI-7wGONJKIA8XTptRIxkKrZ1HSha7mVStBhTr98OVifJxEe2dYjOtxNo3laHlMFzeg1"
+CLIENT_SECRET = "EM4WGzdZpnTMm1ynRm29D_rSUEOpbgj3d5JWVLg-LAtpEUnrPQNe1ClXbeznBqmQC6k3F6mRkhLKMsh8"
 
 #Email Configration
 EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"

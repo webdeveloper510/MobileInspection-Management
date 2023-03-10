@@ -245,23 +245,24 @@ class StripePaymentViewSet(APIView):
         exp_year = request.data.get('exp_year')
         cvc = request.data.get('cvc')
         if not user_id:
-            return Response({"msg":"User id is null", "status": "401 Unauthorized"})
+            return Response({"message":"User id is null", "status": "401 Unauthorized"})
         if not order_id:
-            return Response({"msg":"order id is null", "status": "401 Unauthorized"})
+            return Response({"message":"order id is null", "status": "401 Unauthorized"})
         if not number:
-            return Response({"msg":"Please enter your card number", "status": "401 Unauthorized"})
+            return Response({"message":"Please enter your card number", "status": "401 Unauthorized"})
         if not exp_month:
-            return Response({"msg":"Please enter expiry month", "status": "401 Unauthorized"})
+            return Response({"message":"Please enter expiry month", "status": "401 Unauthorized"})
         if not exp_year:
-            return Response({"msg":"Please enter expiry year", "status": "401 Unauthorized"})
+            return Response({"message":"Please enter expiry year", "status": "401 Unauthorized"})
         if not cvc:
-            return Response({"msg":"Please enter cvc", "status": "401 Unauthorized"})
+            return Response({"message":"Please enter cvc", "status": "401 Unauthorized"})
         if not User.objects.filter(id=user_id).exists():
-            return Response({"msg":"User id does not exist", "status": "401 Unauthorized"})
+            return Response({"message":"User id does not exist", "status": "401 Unauthorized"})
         if not Order.objects.filter(id=order_id).exists():
-            return Response({"msg":"order id does not exist", "status": "401 Unauthorized"})
+            return Response({"message":"order id does not exist", "status": "401 Unauthorized"})
         else:
             user_data = User.objects.get(id=user_id)
+            print( user_data.email)
             order_data = Order.objects.get(id=order_id)
             try:
                 token_data = stripe.Token.create(
@@ -300,8 +301,23 @@ class StripePaymentViewSet(APIView):
                 status = payment_intent['status']
                 if status == "succeeded":
                     order_data = Order.objects.filter(id=order_id).update(status="succeeded", payment_type="stripe")
+                    send_mail(
+                    'Payment Success',
+                    'we have successfully received your payment with stripe',
+                    settings.EMAIL_HOST_USER,
+                    [user_data.email],
+                    fail_silently=False,
+                    )
+
                     return Response({"message":"Payment Completed", "status":"200_Created"})
                 else:
+                    send_mail(
+                    'Payment pending',
+                    'your payment is pending ',
+                    settings.EMAIL_HOST_USER,
+                    [user_data.email],
+                    fail_silently=False,
+                    )
                     return Response({"message":"Payment pending","status":"400"})
             return Response("ok")
 
@@ -380,6 +396,8 @@ class PaypalPaymentViewSet(viewsets.ViewSet):
         paypal_access_token = paypal_token.objects.all().first()
         paypal_access_token = getattr(paypal_access_token, 'paypal_access_token')
         order_id = request.data.get('order_id')
+        # user_id = request.data.get('user_id')
+        # user_data = User.objects.get(id=user_id)
         if not capture_paypal_payment.objects.filter(order_id=order_id).exists():
             return Response({"message":"order id does not exist","status":"400"})
         else:
@@ -404,7 +422,7 @@ class PaypalPaymentViewSet(viewsets.ViewSet):
                 update_time = response['purchase_units'][0]['payments']['captures'][0]['update_time']
                 
                 if str(response['status']) == "COMPLETED":
-                    order_data = Order.objects.filter(id=order_id,payment_type="paypal").update(status='completed')
+                    order_data = Order.objects.filter(id=order_id).update(status='succeeded',payment_type="paypal")
                     capture_paypal_payment_data = capture_paypal_payment.objects.filter(id=capture_paypal_payment_id).update(status="completed")
                 return Response({"message":"payment success","status":"200"})
         return Response({"message":"payment is not captured as payment is not approved by user.","status":"400"})

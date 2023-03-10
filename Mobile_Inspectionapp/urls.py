@@ -3,6 +3,7 @@ from Mobile_Inspectionapp.views import *
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.authtoken import views
+from django.contrib import admin
 
 
 urlpatterns = [
@@ -38,10 +39,10 @@ urlpatterns = [
     path('profileupdate/',Profileupdate.as_view(),name="update"),
     path('promocode_discount/',PromocodeDiscountView.as_view(),name="promo"),
     path('establishment_contact_list/<int:pk>',Establishment_contact_listView.as_view()),
-    
-
-    # path('logout/',LogoutUser.as_view(),name="test"),
+    path('test/',TestSectionView.as_view(),name="test"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,
                           document_root=settings.MEDIA_ROOT)
+
+admin.site.site_header = 'Inspection Squad'

@@ -21,7 +21,6 @@ from django.db.models import Q
 from uuid import uuid4
 
 
-
 # Generate Token Manually
 def get_tokens_for_user(user):
   refresh = RefreshToken.for_user(user)
@@ -42,8 +41,8 @@ class RegisterView(APIView):
      mobile=request.data.get('mobile')
      attribute_name=request.data.get('attribute_name')
      password=request.data.get('password')
+     role=request.data.get('role')
      position=request.data.get('position')
-     print(password)
      if User.objects.filter(email=email).exists():
          user = User.objects.get(email = email)
          data = {
@@ -67,16 +66,16 @@ class RegisterView(APIView):
          return Response({"message":"Lastname is required",'status':"400"})
      if not password:
          return Response({"message":"password is required",'status':"400"})
+     if not role:
+         return Response({"message":"role is required",'status':"400"})
      if not mobile:
          return Response({"message":"mobile number is required",'status':"400"})
      else:
-         registred_data=User.objects.create(First_name=First_name,Last_name=Last_name,email=email,title=title,mobile=mobile,attribute_name=attribute_name,password=password,position=position)
+         registred_data=User.objects.create(First_name=First_name,Last_name=Last_name,email=email,title=title,mobile=mobile,attribute_name=attribute_name,password=password,position=position,role=role)
          serializer = UserSerializer(data=registred_data)
          registred_data.save()
          id=User.objects.filter(email=email).values('id','email')
          user=id[0]['email']
-         print(user)
-         print(id[0]['id'])
          dict_data={'id':str(id[0]['id']),"Firstname":First_name,"Lastname":Last_name,"email":email,"title":title,"mobile":mobile,"attribute_name":attribute_name,"position":position}
          return JsonResponse({'message':'Registeration Successfull','status':'200','data':dict_data})
 
@@ -111,12 +110,12 @@ class Logout(APIView):
     def post(self, request, format=None):
      token=request.data.get('token')
      if not token:
-          return JsonResponse({"message":"please provide detail Authentication "})
+          return JsonResponse({"message":"please provide detail Authentication ","status":"400"})
      if not User.objects.filter(token=token).values('token'):
-         return JsonResponse({"message":"invalid token"})
+         return JsonResponse({"message":"invalid token","status":"400"})
      else:
         user = User.objects.filter(token=token).values('token','id')
-        userid=user[0]['id']    
+        User.objects.filter(token=token).update(token=None)
         return JsonResponse({'message':'logout successfully','status':'200'})
         
 class SendPasswordResetLink(APIView):  
@@ -1001,45 +1000,41 @@ class PromocodeDiscountView(APIView):
 
 
 class TestSectionView(APIView):
-     @csrf_exempt
-     def get(self, request, pk, format=None):
-        if User.objects.filter(id=pk).exists():
-            service = Establishment.objects.all().order_by('id')
-            serializer = EstablishmentSerializer(service, many=True)
-            service = Address.objects.all().order_by('id')
-            serializer2 = AddressSerializer(service, many=True)
-            array=[]
-            data={}
-            array2=[]
-            establishment_data={}
-            address_data={}
-            for x in serializer.data:
-                id=(x['id'])
-                customer_id= (x['customer_id'])
-                address_id=(x['address_id'])
-                name=(x['name'])
-                establishment_type_id=(x['establishment_type_id'])
-                if customer_id==pk :
-                        establishment_data={"id":str(id),"address_id":str(address_id),"name":name,"establishment_type_id":str(establishment_type_id)}
-                        array.append(establishment_data)
-                        
-            for i in serializer2.data:
-                aid=(i['id']) 
-                acustomer_id=(i['customer_id']) 
-                unit_number=(i['unit_number']) 
-                addressline1=(i['addressline1']) 
-                city=(i['city']) 
-                state=(i['state']) 
-                postal_code=(i['postal_code']) 
-                country_name=(i['country_name'])
-                if acustomer_id == pk:
-                    address_data={"id":str(aid),"unit_number":unit_number,"address":addressline1,"city":city,"state":state,"zipcode":postal_code,"country":country_name}
-                    array2.append(address_data)
-                data={"customer_id":str(pk),"establishment_data":array,"address_data":array2}
-                print(data)                  
-            return JsonResponse({"status":"200","message":"success","data":data})
+    @csrf_exempt 
+    @action(detail=False, methods=['post'])
+    @permission_classes((AllowAny,))
+    def post(self, request, format=None):
+        emailid=request.data.get('email')
+        password=request.data.get('password')
+        role=request.data.get('role')
+        if not emailid :
+             return JsonResponse({"message":"Email  is Required","status":"400","data":{}})
+        
+        if not password :
+             return JsonResponse({"message":"password  is Required","status":"400","data":{}})
+        
+        if not role :
+             return JsonResponse({"message":"role  is Required","status":"400","data":{}})
+        
+        if not User.objects.filter(email=emailid ,password=password).values('email', 'password') :
+            
+            return JsonResponse({"message":"wrong email  or password","status":"400","data":{}})
+        
+        if User.objects.filter(email=emailid,role=role).exists(): 
+            user=User.objects.filter(email=emailid).update(ifLogged=True)
+            print(user)
+            ifLoggedvalue=User.objects.filter(email=emailid).values('ifLogged')
+            value=ifLoggedvalue[0]['ifLogged']
+            if value == True:
+                token=uuid4()
+                user=User.objects.filter(email=emailid).update(token=token)
+            userdetail=User.objects.filter(email=emailid).values('id','First_name','Last_name','email','mobile','title','attribute_name','position')
+            data={'id':str(userdetail[0]['id']),'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name'],'position':userdetail[0]['position']}
+            
+            return JsonResponse({'message':'Login Successfull','status':'200','token':token,'data':data})
+
         else:
-             return JsonResponse({"message":"user does not exists or do not create any establishsment","status":"400"})      
+            return JsonResponse({"message":"user does not exist","status":"400"})
 
 
         
