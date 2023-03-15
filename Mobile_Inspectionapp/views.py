@@ -12,23 +12,13 @@ from rest_framework_simplejwt.tokens import RefreshToken,AccessToken
 from rest_framework.permissions import IsAuthenticated ,AllowAny
 from django.http import Http404
 from rest_framework.decorators import  permission_classes
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
-from rest_framework.authtoken.models import Token
 from datetime import date 
 from django.contrib.auth import authenticate
 from django.db.models import Q 
 from uuid import uuid4
+from django.contrib.auth import login
 
-
-# Generate Token Manually
-def get_tokens_for_user(user):
-  refresh = RefreshToken.for_user(user)
-  return {
-      'refresh': str(refresh),
-      'access': str(refresh.access_token),
-  }
-# User Register class
 
 class RegisterView(APIView):
     @csrf_exempt 
@@ -43,8 +33,26 @@ class RegisterView(APIView):
      password=request.data.get('password')
      role=request.data.get('role')
      position=request.data.get('position')
+     if not email:
+          return Response({"message":"email is required",'status':"400"})
+     if '@' not in email:
+         return Response({"message":"please enter valid email",'status':"400"})
+     if not First_name:
+         return Response({"message":"Firstname is required",'status':"400"})
+     if not Last_name:
+         return Response({"message":"Lastname is required",'status':"400"})
+     if not password:
+         return Response({"message":"password is required",'status':"400"})
+     if not role:
+         return Response({"message":"role is required",'status':"400"})
+     if not mobile:
+         return Response({"message":"mobile number is required",'status':"400"})
+     if not User.objects.filter(role=role).exists():
+         return Response({"message":"invalid role option",'status':"400"})
+         
+         
      if User.objects.filter(email=email).exists():
-         user = User.objects.get(email = email)
+
          data = {
                 'message':'Email is Already Exists',
                 'status':"400",
@@ -58,61 +66,72 @@ class RegisterView(APIView):
                 "data":{}
             }
           return Response(data)
-     if '@' not in email:
-         return Response({"message":"please enter valid email",'status':"400"})
-     if not First_name:
-         return Response({"message":"Firstname is required",'status':"400"})
-     if not Last_name:
-         return Response({"message":"Lastname is required",'status':"400"})
-     if not password:
-         return Response({"message":"password is required",'status':"400"})
-     if not role:
-         return Response({"message":"role is required",'status':"400"})
-     if not mobile:
-         return Response({"message":"mobile number is required",'status':"400"})
-     else:
-         registred_data=User.objects.create(First_name=First_name,Last_name=Last_name,email=email,title=title,mobile=mobile,attribute_name=attribute_name,password=password,position=position,role=role)
-         serializer = UserSerializer(data=registred_data)
-         registred_data.save()
-         id=User.objects.filter(email=email).values('id','email')
-         user=id[0]['email']
-         dict_data={'id':str(id[0]['id']),"Firstname":First_name,"Lastname":Last_name,"email":email,"title":title,"mobile":mobile,"attribute_name":attribute_name,"position":position}
-         return JsonResponse({'message':'Registeration Successfull','status':'200','data':dict_data})
+     
+    
+     serializer = UserRegistrationSerializer(data=request.data)
+     if serializer.is_valid(raise_exception=True):
+        user = serializer.save()
+        id=serializer.data['id']
+        dict_data={"id":str(id),"Firstname":First_name,"Lastname":Last_name,"email":email,"title":title,"mobile":mobile,"attribute_name":attribute_name,"position":position}
+        return JsonResponse({'message':'Registeration Successfull','status':'200','data':dict_data})
 
 
 class UserLoginView(APIView): 
-    @csrf_exempt 
-    @action(detail=False, methods=['post'])
-    @permission_classes((AllowAny,))
-    def post(self, request, format=None):
-        emailid=request.data.get('email')
-        password=request.data.get('password')
-        
-        if emailid=='' or password == '':
-            return JsonResponse({"message":"Email or PAssword Required","status":"400","data":{}})
-            
-        if not User.objects.filter(email=emailid , password=password).values('email', 'password') :
-            
-            return JsonResponse({"message":"wrong Email id or password","status":"400","data":{}})
-        
-        else:
-            user=User.objects.filter(email=emailid).update(ifLogged=True)
-            ifLoggedvalue=User.objects.filter(email=emailid).values('ifLogged')
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+        user = authenticate(email=email, password=password)
+        if not email:
+             return JsonResponse({"message":"email is required","status":"400","data":{}})
+        if not password:
+             return JsonResponse({"message":"password is required","status":"400","data":{}})
+        if user:
+            login(request, user)
+            userd=User.objects.filter(email=email).update(ifLogged=True)
+            ifLoggedvalue=User.objects.filter(email=email).values('ifLogged')
             value=ifLoggedvalue[0]['ifLogged']
             if value == True:
                 token=uuid4()
-                user=User.objects.filter(email=emailid).update(token=token)
-                userdetail=User.objects.filter(email=emailid).values('id','First_name','Last_name','email','mobile','title','attribute_name','position')
+                user=User.objects.filter(email=email).update(token=token)
+                userdetail=User.objects.filter(email=email).values('id','First_name','Last_name','email','mobile','title','attribute_name','position')
                 data={'id':str(userdetail[0]['id']),'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name'],'position':userdetail[0]['position']}
-                return JsonResponse({'message':'Login Successfull','status':'200','token':token,'data':data})
+            return JsonResponse({'message':"Login Successfully","token":token,"data":data})
+        else:
+            return JsonResponse({"message":"Invalid user credentials","status":"400","data":{}})
+
+# class UserLoginView(APIView): 
+#     @csrf_exempt 
+#     @action(detail=False, methods=['post'])
+#     @permission_classes((AllowAny,))
+#     def post(self, request, format=None):
+#         emailid=request.data.get('email')
+#         password=request.data.get('password')
+        
+#         if emailid=='' or password == '':
+#             return JsonResponse({"message":"Email or PAssword Required","status":"400","data":{}})
+            
+#         if not User.objects.filter(email=emailid , password=password).values('email', 'password') :
+            
+#             return JsonResponse({"message":"wrong Email id or password","status":"400","data":{}})
+        
+#         else:
+#             user=User.objects.filter(email=emailid).update(ifLogged=True)
+#             ifLoggedvalue=User.objects.filter(email=emailid).values('ifLogged')
+#             value=ifLoggedvalue[0]['ifLogged']
+#             if value == True:
+#                 token=uuid4()
+#                 user=User.objects.filter(email=emailid).update(token=token)
+#                 userdetail=User.objects.filter(email=emailid).values('id','First_name','Last_name','email','mobile','title','attribute_name','position')
+#                 data={'id':str(userdetail[0]['id']),'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name'],'position':userdetail[0]['position']}
+#                 return JsonResponse({'message':'Login Successfull','status':'200','token':token,'data':data})
 
 class Logout(APIView):
     def post(self, request, format=None):
      token=request.data.get('token')
      if not token:
-          return JsonResponse({"message":"please provide detail Authentication ","status":"400"})
+          return JsonResponse({'message':'logout successfully','status':'200'})
      if not User.objects.filter(token=token).values('token'):
-         return JsonResponse({"message":"invalid token","status":"400"})
+         return JsonResponse({'message':'logout successfully','status':'200'})
      else:
         user = User.objects.filter(token=token).values('token','id')
         User.objects.filter(token=token).update(token=None)
@@ -202,12 +221,6 @@ class Profileupdate(APIView):
             return JsonResponse({"status":"400","message":"user does not exist"})
         return JsonResponse({"status":"200","message":"your data is updated successfully"})
     
-from rest_framework import generics  
-         
-class LogoutUser(generics.GenericAPIView):
-  permission_classes = [IsAuthenticated]
-  def post(self, request, format=None):
-    return Response({'msg':'Logout Successfully'})
     
 class ServiceAgreementView(APIView):
    
@@ -988,6 +1001,7 @@ class PromocodeDiscountView(APIView):
         startdate=promodates[0]['start_date']
         enddate=promodates[0]['end_date']
         current_date = date.today()
+        # print(current_date)
         if current_date > enddate:
             return JsonResponse({"message":"offer is expired","status":"400"})
         else:
@@ -996,6 +1010,8 @@ class PromocodeDiscountView(APIView):
             discountrate=discountdata[0]['discount_rate']
             data={"discount":discountrate}
             return JsonResponse({"message":"success","status":"200",'data':data})
+     
+    
 
 
 

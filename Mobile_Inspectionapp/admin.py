@@ -1,27 +1,84 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.admin import UserAdmin
 from .models import *
+from django import forms
+from django.contrib import admin
+from django.contrib.auth.models import Group
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
-class UserModelAdmin(BaseUserAdmin):
+class UserCreationForm(forms.ModelForm):
    
-    list_display = ('id','email','First_name','Last_name','is_admin')
+    password = forms.CharField(label='Password', widget=forms.PasswordInput)
+
+    class Meta:
+        model = User
+        fields = ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active',)
+
+    def clean_password2(self):
+        password = self.cleaned_data.get("password")
+
+    def save(self, commit=True):
+       
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])
+        if commit:
+            user.save()
+        return user
+
+class UserChangeForm(forms.ModelForm):
+   
+    password = ReadOnlyPasswordHashField()
+
+    class Meta:
+        model = User
+        fields = ('email','First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active')
+
+    def clean_password(self):
+        
+        return self.initial["password"]
+
+
+class UserAdmin(BaseUserAdmin):
+   
+    form = UserChangeForm
+    add_form = UserCreationForm
+
+    list_display = ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','is_admin','is_superuser',)
     list_filter = ('is_admin',)
     fieldsets = (
-      ('User Credentials', {'fields': ('email', 'password')}),
-      ('Personal info', {'fields': ('First_name','Last_name', )}),
-      ('Permissions', {'fields': ('is_admin',)}),
-  )
+        (None, {'fields': ('email', 'password')}),
+        ('Personal info', {'fields': ('First_name','Last_name','mobile','role','title','attribute_name')}),
+        ('Permissions', {'fields': ('is_admin',)}),
+    )
+    # if want to give group permission to stafff user add field groups here
     add_fieldsets = (
-      (None, {
-          'classes': ('wide',),
-          'fields': ('email', 'First_name', 'Last_name' 'password'),
-      }),
-  )
-    search_fields = ('email',)
-    ordering = ('email', 'id')
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','is_admin','is_superuser',)}
+        ),
+    )
+    readonly_fields =('is_superuser',)
+    search_fields = ('email','role')
+    ordering = ('email',)
     filter_horizontal = ()
+    
+    # with help below function staff user can add user and dispatcher but can not see the list
+    # def get_queryset(self, request):
+    #     qs = super().get_queryset(request)
+    #     if request.user.is_superuser:
+    #         return qs
+    #     return qs.filter(email=request.user)
 
-admin.site.register(User)
+    # def has_add_permission(self, request, obj=None):
+    #     return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+admin.site.register(User, UserAdmin)
+
 @admin.register(ServiceAgreement)
 class ServiceAgreementAdmin(admin.ModelAdmin):
   list_display = ('id','service_agreement_form','signature','customer_id','date','time')

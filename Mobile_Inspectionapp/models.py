@@ -2,42 +2,107 @@ from django.db import models
 from django.contrib.auth.models import *
 from .validater import *
 from phonenumber_field.modelfields import PhoneNumberField
-from django.contrib.auth.hashers import make_password
-from django.core.validators import MinValueValidator,MaxValueValidator
 from django.contrib.auth.models import AbstractBaseUser,BaseUserManager
-from .manager import *
+# from Mobile_Inspectionapp.manager import CustomUserManager
 from django.contrib.auth.models import UserManager
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 
+
+USER_TYPE_CHOICES = (
+           ("dispatcher", "dispatcher"),
+           ("customer", "customer"),
+          
+)
+#custom User Manager
+class UserManager(BaseUserManager):
+    def create_user(self, email, First_name, Last_name, title,role,mobile,attribute_name,position,password=None):
+        
+        if not email:
+            raise ValueError('Users must have an email address')
+
+        user = self.model(
+            email=self.normalize_email(email),
+            First_name=First_name,
+            Last_name=Last_name,
+            title=title,
+            role=role,
+            mobile=mobile,
+            attribute_name=attribute_name,
+            position=position
+                         )
+
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None):
+        """
+        Creates and saves a superuser with the given email and password.
+        """
+        user = self.create_user(
+            email,
+            First_name="None",
+            Last_name="None",
+            title="None",
+            role="None",
+            mobile="None",
+            attribute_name="None",
+            position="None",
+            password=password,
+           )
+        user.is_admin = True
+    
+        user.save(using=self._db)
+        return user
+
 class User(AbstractBaseUser,PermissionsMixin):
   
     First_name = models.CharField(max_length=50, null=False,default="")
     Last_name = models.CharField(max_length=50, null=False,default="")
-    email = models.EmailField(max_length=50, null=False,default="",unique=True,verbose_name ="username")
-    title=models.CharField(max_length=50, null=False,default="")
-    role=models.CharField(max_length=50, null=False,default="")
-    mobile=PhoneNumberField(null=False)
-    attribute_name=models.CharField(max_length=50, null=False,default="")
+    email = models.EmailField(max_length=50, null=False,default="",unique=True)
+    title=models.CharField(max_length=50, null=True,blank=True,default="")
+    role=models.CharField(max_length=50, null=False,default="",choices=USER_TYPE_CHOICES)
+    mobile=models.CharField(max_length=50, null=False,default="")
+    attribute_name=models.CharField(max_length=50, null=True,blank=True,default="")
     password = models.CharField(max_length=250,null=False)
-    position=models.CharField(max_length=250,null=False,default="")
+    position=models.CharField(max_length=250, null=True,blank=True,default="")
     ifLogged  = models.BooleanField(default=True)
     token = models.CharField(max_length=500, null=True, default="",blank=True)
-    # username = models.CharField(max_length=50, null=False,default="None")
-    is_staff  = models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.')
-    is_active   = models.BooleanField(default=True,
-    help_text='Designates whether this user should be treated as active.\
-    Unselect this instead of deleting accounts.')
+    is_staff  = models.BooleanField(default=False)
+    is_active   = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True,null=True)
     updated_at =  models.DateTimeField(auto_now=True)
-    
+    is_admin = models.BooleanField(default=False)
+    is_superuser=models.BooleanField(default=False)
     objects = UserManager()
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ['username']
-  
-
+    # REQUIRED_FIELDS = []
     
+    def ___str__(self):
+        return self.email
+
+    def has_perm(self, perm, obj=None):
+        "Does the user have a specific permission?"
+        # Simplest possible answer: Yes, always
+        return self.is_admin
+        #return True
+
+    def has_module_perms(self, app_label):
+        "Does the user have permissions to view the app `app_label`?"
+        # Simplest possible answer: Yes, always
+        return True
+
+    @property
+    def is_staff(self):
+        "Is the user a member of staff?"
+        # Simplest possible answer: All admins are staff
+        return self.is_admin
+    class Meta:
+        verbose_name="User"
+
+
 class Lead(models.Model):
     firstname=models.CharField(max_length=500,null=False)
     lastname=models.CharField(max_length=500,null=False)

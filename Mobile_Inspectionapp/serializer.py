@@ -8,6 +8,7 @@ from uuid import uuid4
 from .validater import *
 from phonenumber_field.serializerfields import PhoneNumberField
 
+
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all())],required=True
@@ -33,6 +34,8 @@ class UserSerializer(serializers.ModelSerializer):
        
     def create(self, validate_data):
      return User.objects.create(**validate_data)
+
+
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -139,71 +142,26 @@ class UploadpdfSerializer(serializers.ModelSerializer):
 
 
 
-# class LeadSerializer(serializers.ModelSerializer):
-#      class Meta:
-#         model= Lead
-#         fields = ['firstname','lastname','phone','email','comment','date','time']
-#         extra_kwargs={
-#             "firstname":{"error_messages":{"required":"firstname is required"}},
-#             "lastname":{"error_messages":{"required":"lastname is required"}},
-#             "phone":{"error_messages":{"required":"phone number is required"}},
-#             "email":{"error_messages":{"required":"email is required"}},
-#             "comment":{"error_messages":{"required":"comment is required"}},
-#             "date":{"error_messages":{"required":"date is required"}},
-#             "time":{"error_messages":{"required":"time is required"}},
-#         }
-           
-#      def create(self, validate_data):
-#          return Lead.objects.create(**validate_data)
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=User
+        fields=['id','email','password','First_name','Last_name','mobile','title','role','position','attribute_name']
+        extra_kwargs = {'password': {'write_only': True}}
+    def validate(self, attrs):
+      password=attrs.get('password')   
+      return attrs
+    def create(self, validated_data,):
+       user=User.objects.create(
+       email=validated_data['email'],
+       First_name=validated_data['First_name'],
+       Last_name=validated_data['Last_name'],
+       title=validated_data['title'],
+       attribute_name=validated_data['attribute_name'],
+       mobile=validated_data['mobile'],
+       role=validated_data['role'],
+       position=validated_data['position'],)
+       user.set_password(validated_data['password']) 
+       user.save()
+       return user
      
-# class LeadAddressSerializer(serializers.ModelSerializer):
-#      class Meta:
-#         model= LeadAddress
-#         fields = ['customer_id','street_number','unit_number','addressline1','addressline2','city','state','postal_code','country_name']
-#         extra_kwargs={
-#             "customer_id":{"error_messages":{"required":"customer is required"}},
-#             "street_number":{"error_messages":{"required":"street_number is required"}},
-#             "unit_number":{"error_messages":{"required":"addressline1 is required"}},
-#             "addressline2":{"error_messages":{"required":"addressline2 is required"}},
-#             "city":{"error_messages":{"required":"city is required"}},
-#             "state":{"error_messages":{"required":"state is required"}},
-#             "postal_code":{"error_messages":{"required":"postal_code is required"}},
-#             "country_name":{"error_messages":{"required":"country_name is required"}},
-#         }
-           
-#      def create(self, validate_data):
-#          return LeadAddress.objects.create(**validate_data)
-
-# class CartSerializer(serializers.ModelSerializer):
-#      class Meta:
-#         model= Cart
-#         fields = '__all__'
-           
-#      def create(self, validate_data):
-#          return Cart.objects.create(**validate_data)
-     
-# class PromotionCategorySerializer(serializers.ModelSerializer):
-#      class Meta:
-#         model= Promotion_Category
-#         fields = '__all__'
-           
-#      def create(self, validate_data):
-#          return Promotion_Category.objects.create(**validate_data)  
-     
-     
-     
-# class PromotionSerializer(serializers.ModelSerializer):
-#      class Meta:
-#         model= Promotion
-#         fields = '__all__'
-           
-#      def create(self, validate_data):
-#          return Promotion.objects.create(**validate_data)
-     
-# class OperaterSerializer(serializers.ModelSerializer):
-#      class Meta:
-#         model= Operater
-#         fields = '__all__'
-           
-#      def create(self, validate_data):
-#          return Operater.objects.create(**validate_data)
+    

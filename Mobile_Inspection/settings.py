@@ -188,13 +188,13 @@ BASE_URL="http://127.0.0.1:8000"
 AUTH_USER_MODEL = 'Mobile_Inspectionapp.user'
 
 
-# JWT Settings
+#JWT settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': False,
-    'UPDATE_LAST_LOGIN': True,
+    'UPDATE_LAST_LOGIN': False,
 
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
@@ -226,3 +226,5 @@ EMAIL_HOST_USER = "email host user"
 EMAIL_HOST_PASSWORD = "password"
 EMAIL_USE_TLS = True
 PASSWORD_RESET_TIMEOUT= 900 #sec=15 minutes, 
+
+
