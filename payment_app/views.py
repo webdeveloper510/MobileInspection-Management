@@ -25,7 +25,7 @@ from django.template import loader
 
 
 
-# stripe.api_key = "sk_test_51LPgvJSCZHeL5pu7SqTRBpyfjYVYhGdBlo5SUHN5SvepjI1src0BRZbw01Ts5wivliYs8ID6MtTLVviRDhxmCb1I00x3mr3DGr"
+
 stripe.api_key=settings.API_SECRET_KEY
 class OrderView(APIView):
     @csrf_exempt 
