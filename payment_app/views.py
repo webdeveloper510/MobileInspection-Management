@@ -437,15 +437,4 @@ def cancel(request):
   return HttpResponse(template.render())  
 
 
-from django.core.mail import send_mail
-def test(request):
-  send_mail(
-    'hello Gurepreet',
-    'Whats upp',
-    'deepika@codenomad.net',
-    ['gurpreet@codenomad.net'],
-    fail_silently=False,
-)
-  template =loader.get_template('test.html')
-  return HttpResponse(template.render())  
  
