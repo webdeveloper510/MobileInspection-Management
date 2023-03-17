@@ -18,7 +18,10 @@ from django.contrib.auth import authenticate
 from django.db.models import Q 
 from uuid import uuid4
 from django.contrib.auth import login
-
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from Mobile_Inspection.settings import BASE_URL
+from Mobile_Inspectionapp.utils import Util
+from django.core.mail import EmailMultiAlternatives, message
 
 class RegisterView(APIView):
     @csrf_exempt 
@@ -31,7 +34,6 @@ class RegisterView(APIView):
      mobile=request.data.get('mobile')
      attribute_name=request.data.get('attribute_name')
      password=request.data.get('password')
-     role=request.data.get('role')
      position=request.data.get('position')
      if not email:
           return Response({"message":"email is required",'status':"400"})
@@ -43,14 +45,8 @@ class RegisterView(APIView):
          return Response({"message":"Lastname is required",'status':"400"})
      if not password:
          return Response({"message":"password is required",'status':"400"})
-     if not role:
-         return Response({"message":"role is required",'status':"400"})
      if not mobile:
          return Response({"message":"mobile number is required",'status':"400"})
-     if not User.objects.filter(role=role).exists():
-         return Response({"message":"invalid role option",'status':"400"})
-         
-         
      if User.objects.filter(email=email).exists():
 
          data = {
@@ -67,7 +63,6 @@ class RegisterView(APIView):
             }
           return Response(data)
      
-    
      serializer = UserRegistrationSerializer(data=request.data)
      if serializer.is_valid(raise_exception=True):
         user = serializer.save()
@@ -85,6 +80,10 @@ class UserLoginView(APIView):
              return JsonResponse({"message":"email is required","status":"400","data":{}})
         if not password:
              return JsonResponse({"message":"password is required","status":"400","data":{}})
+        
+        if not User.objects.filter(email=email).exists(): 
+            return JsonResponse({"message":"invalid email address","status":"400"})
+        
         if user:
             login(request, user)
             userd=User.objects.filter(email=email).update(ifLogged=True)
@@ -93,37 +92,12 @@ class UserLoginView(APIView):
             if value == True:
                 token=uuid4()
                 user=User.objects.filter(email=email).update(token=token)
-                userdetail=User.objects.filter(email=email).values('id','First_name','Last_name','email','mobile','title','attribute_name','position')
-                data={'id':str(userdetail[0]['id']),'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name'],'position':userdetail[0]['position']}
+                userdetail=User.objects.filter(email=email).values('id','First_name','Last_name','email','mobile','title','attribute_name','position','role')
+                data={'id':str(userdetail[0]['id']),'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name'],'position':userdetail[0]['position'],'role':userdetail[0]['role']}
             return JsonResponse({'message':"Login Successfully","token":token,"data":data})
         else:
-            return JsonResponse({"message":"Invalid user credentials","status":"400","data":{}})
+            return JsonResponse({"message":"Invalid  credentials","status":"400","data":{}})
 
-# class UserLoginView(APIView): 
-#     @csrf_exempt 
-#     @action(detail=False, methods=['post'])
-#     @permission_classes((AllowAny,))
-#     def post(self, request, format=None):
-#         emailid=request.data.get('email')
-#         password=request.data.get('password')
-        
-#         if emailid=='' or password == '':
-#             return JsonResponse({"message":"Email or PAssword Required","status":"400","data":{}})
-            
-#         if not User.objects.filter(email=emailid , password=password).values('email', 'password') :
-            
-#             return JsonResponse({"message":"wrong Email id or password","status":"400","data":{}})
-        
-#         else:
-#             user=User.objects.filter(email=emailid).update(ifLogged=True)
-#             ifLoggedvalue=User.objects.filter(email=emailid).values('ifLogged')
-#             value=ifLoggedvalue[0]['ifLogged']
-#             if value == True:
-#                 token=uuid4()
-#                 user=User.objects.filter(email=emailid).update(token=token)
-#                 userdetail=User.objects.filter(email=emailid).values('id','First_name','Last_name','email','mobile','title','attribute_name','position')
-#                 data={'id':str(userdetail[0]['id']),'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name'],'position':userdetail[0]['position']}
-#                 return JsonResponse({'message':'Login Successfull','status':'200','token':token,'data':data})
 
 class Logout(APIView):
     def post(self, request, format=None):
@@ -136,42 +110,50 @@ class Logout(APIView):
         user = User.objects.filter(token=token).values('token','id')
         User.objects.filter(token=token).update(token=None)
         return JsonResponse({'message':'logout successfully','status':'200'})
-        
+
 class SendPasswordResetLink(APIView):  
-    @csrf_exempt 
-    @action(detail=False, methods=['post'])
-    def post(self, request, format=None):
+     @csrf_exempt 
+     def post(self, request, format=None):
         email=request.data.get('email')
-        if User.objects.filter(email=email).exists():
-            user = User.objects.get(email = email)
+
+        if not email:
+            return Response({"message":"email is required","status":"400"})
+        
+        if not User.objects.filter(email=email).exists():
+            return Response({"message":"user with this email does not exists","status":"400"})
+
+        if User.objects.filter(email=email,user_created_by_admin=True).exists():
+            user = User.objects.get(email=email)
+            link=" http://127.0.0.1:8000/userpasswordreset/"
+            subject, from_email, to = 'Reset Your Password', settings.EMAIL_HOST_USER, email
+            text_content = 'This is an important message.'
+            html_content = '<p>Click Following Link to Reset Your Password</p>' + link
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
+            return JsonResponse({'message':'your password reset link successfully send to your email','status':'200'})
+        else:
+            user = User.objects.get(email=email)
             link = 'http://127.0.0.1:8000/password_set/'
             print(link)
             print('Password Reset Link', link)
             return Response({"message":"success",'status':'200','resetlink':link})
-        else:
-            return Response({"message":"user does not exist ","status":"400"})
-    
+
 class PasswordSetViewSet(APIView):
-    @csrf_exempt 
-    @action(detail=False, methods=['post'])
+    renderer_classes=[UserRenderer]
     def post(self, request, format=None):
-        email=request.data.get('email')
-        print(email)
-        newpassword=request.data.get('password')
-        print(newpassword)
-        if email:
-            if User.objects.filter(email=email).exists():
-                print(User.objects.filter(email=email).exists())
-                User.objects.filter(email=email).update(password=newpassword)
-                user_data=User.objects.filter(email=email).values('id')
-                user_id=user_data[0]['id']
-                print(user_id)
-                data={"id":str(user_id),"email":email}
-                return JsonResponse({"message":"you password is successfully changed","status":"200","data":data})
-            else:
-                return JsonResponse({"message":"you are entring a wrong email id","status":"400"})
-        else:
-            return JsonResponse({"message":"please enter valid email id","status":"400"})
+     email=request.data.get('email')
+     password=request.data.get('password')
+     if not email:
+            return Response({'message':'email is required','status':'400'})
+     if not  User.objects.filter(email=email).exists():
+          return Response({'message':'email does not exists','status':'400'})
+     if not password:
+         return Response({'message':'please enter new password','status':'400'})
+     user = User.objects.get(email=email)
+     user.set_password(password)
+     user.save()
+     return Response({'message':'your password is successfully changed','status':'200'})
 
     
 class CustomerProfileView(APIView): 
@@ -1011,46 +993,35 @@ class PromocodeDiscountView(APIView):
             data={"discount":discountrate}
             return JsonResponse({"message":"success","status":"200",'data':data})
      
-    
-
-
-
 class TestSectionView(APIView):
     @csrf_exempt 
-    @action(detail=False, methods=['post'])
-    @permission_classes((AllowAny,))
     def post(self, request, format=None):
-        emailid=request.data.get('email')
-        password=request.data.get('password')
-        role=request.data.get('role')
-        if not emailid :
-             return JsonResponse({"message":"Email  is Required","status":"400","data":{}})
-        
-        if not password :
-             return JsonResponse({"message":"password  is Required","status":"400","data":{}})
-        
-        if not role :
-             return JsonResponse({"message":"role  is Required","status":"400","data":{}})
-        
-        if not User.objects.filter(email=emailid ,password=password).values('email', 'password') :
-            
-            return JsonResponse({"message":"wrong email  or password","status":"400","data":{}})
-        
-        if User.objects.filter(email=emailid,role=role).exists(): 
-            user=User.objects.filter(email=emailid).update(ifLogged=True)
-            print(user)
-            ifLoggedvalue=User.objects.filter(email=emailid).values('ifLogged')
-            value=ifLoggedvalue[0]['ifLogged']
-            if value == True:
-                token=uuid4()
-                user=User.objects.filter(email=emailid).update(token=token)
-            userdetail=User.objects.filter(email=emailid).values('id','First_name','Last_name','email','mobile','title','attribute_name','position')
-            data={'id':str(userdetail[0]['id']),'First_name':userdetail[0]['First_name'],'Last_name':userdetail[0]['Last_name'],'email':userdetail[0]['email'],'mobile':userdetail[0]['mobile'],'title':str(userdetail[0]['title']),'attribute_name':userdetail[0]['attribute_name'],'position':userdetail[0]['position']}
-            
-            return JsonResponse({'message':'Login Successfull','status':'200','token':token,'data':data})
+        email=request.data.get('email')
 
+        if not email:
+            return Response({"message":"email is required","status":"400"})
+        
+        if not User.objects.filter(email=email).exists():
+            return Response({"message":"user with this email does not exists","status":"400"})
+
+        if User.objects.filter(email=email,user_created_by_admin=True).exists():
+            user = User.objects.get(email=email)
+            link=" http://127.0.0.1:8000/userpasswordreset/"
+            subject, from_email, to = 'Reset Your Password', settings.EMAIL_HOST_USER, email
+            text_content = 'This is an important message.'
+            html_content = '<p>Click Following Link to Reset Your Password</p>' + link
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
+            return JsonResponse({'message':'your password reset link successfully send to your email','status':'200'})
         else:
-            return JsonResponse({"message":"user does not exist","status":"400"})
+            user = User.objects.get(email = email)
+            link = 'http://127.0.0.1:8000/password_set/'
+            print(link)
+            print('Password Reset Link', link)
+            return Response({"message":"success",'status':'200','resetlink':link})
+           
+        
 
 
         
@@ -1080,129 +1051,409 @@ class Establishment_contact_listView(APIView):
                 array.append(dict)
         return JsonResponse({"status":"200","msg":"success","data":array})
              
+ #new   
 
-     
-        
+# operater api
+class  CreateOperaterView(APIView):# new
+     @csrf_exempt
+     def post(self, request,format=None): 
+         
+         operater_data=request.data.get('operater_data')
+
+         if not operater_data:
+             return Response({"message":"you can not send empty detail","status":"400"})
+         
+         else:
+             for i in operater_data:
+                 
+                 firstname=i['firstname']
+                 lastname=i['lastname']
+                 phone=i['phone']
+                 email=i['email']
+                 position=i['position']
+
+                 if not firstname:
+                     return Response({"message":"firstname is required","status":"400"})
+                 
+                 if not lastname:
+                     return Response({"message":"lastname is required","status":"400"})
+                 
+                 if not phone:
+                     return Response({"message":"mobile number  is required","status":"400"})
+                 
+                 if not email:
+                     return Response({"message":"email is required","status":"400"})
+                 
+                 if not position:
+                     return Response({"message":"position is required","status":"400"})
+                 
+             
+             for j in operater_data:
+                 
+                 firstname=j['firstname']
+                 lastname=j['lastname']
+                 phone=j['phone']
+                 email=j['email']
+                 position=j['position']    
+                 operater_data=Operater.objects.create(firstname=firstname,lastname=lastname,phone=phone,email=email,position=position)
+                 serializer=OperaterSerializer(data=operater_data)
+                 operater_data.save()
+                 
+         return Response({"message":"Detail successfully saved","status":"200"})
+
+class UpdateOperaterView(APIView):# new
+  @csrf_exempt
+  def post(self, request, pk, format=None):
+      firstname=request.data.get('firstname')
+      lastname=request.data.get('lastname')
+      phone=request.data.get('phone')
+      email=request.data.get('email')
+      position=request.data.get('position')
+
+      if not Operater.objects.filter(id=pk).exists():
+          return JsonResponse({"message":"invalid operater detail","status":"400"})
+      else:
           
-        
+          if firstname:
+               data=Operater.objects.filter(id=pk).update(firstname=firstname)
+
+          if lastname:
+                 data=Operater.objects.filter(id=pk).update(lastname=lastname)   
+
+          if phone:
+                 data=Operater.objects.filter(id=pk).update(phone=phone)
+
+          if email:
+               data=Operater.objects.filter(id=pk).update(email=email)
+
+          if position:
+               data=Operater.objects.filter(id=pk).update(position=position)
+              
+
+      return JsonResponse({"message":"details successfully updated","status":"200"})
       
-   
+#get by operater id
+class GetOperaterById(APIView):
+     @csrf_exempt
+     def get(self, request,pk,format=None):
+         if not Operater.objects.filter(id=pk).exists():
+                return JsonResponse({"status":"400","message":"Operater not found"})
+         else:
+            array=[]
+            operater = Operater.objects.all().order_by('id')
+            serializer2 =  OperaterSerializer(operater, many=True)
+            for i in serializer2.data:
+                oid=(i['id']) 
+                firstname=(i['firstname']) 
+                lastname=(i['lastname']) 
+                phone=(i['phone']) 
+                email=(i['email']) 
+                position=(i['position']) 
+                
+                if oid == pk:
+                    operater_data={"id":str(oid),"firstname":firstname,"lastname":lastname,"phone":phone,"email":email,"position":position}
+                    array.append(operater_data)             
+            return JsonResponse({"status":"200","message":"success","data":array}) 
+         
+
+
+
+   # get all operater detail   
+
+# get all operater detail
+class GetOperaterDetail(APIView):
+    @csrf_exempt
+    def get(self, request, format=None):
+        operater = Operater.objects.all().order_by('id')
+        serializer = OperaterSerializer(operater, many=True)
+        array=[]
+        for i in serializer.data:
+            oid=(i['id']) 
+            firstname=(i['firstname']) 
+            lastname=(i['lastname']) 
+            phone=(i['phone']) 
+            email=(i['email']) 
+            position=(i['position']) 
+            operater_data={"id":str(oid),"firstname":firstname,"lastname":lastname,"phone":phone,"email":email,"position":position}
+            array.append(operater_data)
+        return JsonResponse({"status": "200","message": "Success","data":array})   
     
 
-
-
-
-# class TestSectionView(APIView):
-#  renderer_classes=[UserRenderer]
-#  def post(self,request,format=None):
-#     customer_id = request.data.get('customer_id')
-#     address_id = request.data.get('address_id')
-#     name = request.data.get('name')
-#     unit_number=request.data.get('unit_number')
-#     address=request.data.get('address')
-#     city=request.data.get('city')
-#     state=request.data.get('state')
-#     country=request.data.get('country')
-#     zip_code=request.data.get('zip_code')
-#     print(len(zip_code))
-#     establishment_type_id = request.data.get('establishment_type_id')
-#     if address_id:
-#         if not Address.objects.filter(id=address_id).exists():
-#             return JsonResponse({"message":"address_id is not available ","status":"400"})
-#         if not customer_id:
-#             return JsonResponse({"message":"customer_id is not available ","status":"400"})
-       
-#         if not User.objects.filter(id=customer_id).exists():
-#             return JsonResponse({"message":"customer_id  does not exits","status":"400"})
-#         if not name:
-#             return JsonResponse({"message":"name field is required","status":"400"})
-#         if not Establishment.objects.filter(id=establishment_type_id).exists():
-#             return JsonResponse({"message":"Establishment_id  does not exits","status":"400"})
-#         if unit_number:
-#            unit_number=unit_number
-#            return JsonResponse({"message":"address_id is available,other address field is not required","status":"400"})
-#         if address:
-#            address=address
-#            return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
-#         if city:
-#            city=city
-#            return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
-#         if state:
-#            state=state
-#            return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
-#         if country:
-#            country=country
-#            return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
-#         if zip_code:
-#            zip_code=zip_code
-#            return JsonResponse({"message":"address_id is available ,other address field is not required","status":"400"})
-       
-#         user = User.objects.get(id= customer_id)
-#         user.user = user
+# create service item api
+class CreateServiceItemView(APIView):
+    renderer_classes=[UserRenderer] 
+    @csrf_exempt
+    def post(self,request,format=None):
+        service_item_data=request.data.get('service_item_data')
+        if not service_item_data:
+            return JsonResponse({"message":"you can not send empty details",'status':'400'})
         
-#         EstablishmentID = Establishment_type.objects.get(id= establishment_type_id)
-#         EstablishmentID.EstablishmentID =EstablishmentID
-        
-#         AddressID = Address.objects.get(id= address_id)
-#         AddressID.AddressID = AddressID
+        else:
+           for i in service_item_data:
+                 
+                 establishment_id=i['establishment_id']
+                 service_type_id=i['service_type_id']
+                 operater_id=i['operater_id']
+                 service_date_time=i['service_date_time']
+                 service_notes=i['service_notes']
+
+                 if not establishment_id:
+                     return JsonResponse({"message":"eastablishment is required",'status':'400'})
+                 
+                 if not Establishment.objects.filter(id=establishment_id).exists():
+                     return JsonResponse({"message":"eastablishment detail not found","status":"400"})
+                 
+                 if not service_type_id:
+                     return JsonResponse({"message":"service type  is required",'status':'400'})
+                 
+                 if not ServiceType.objects.filter(id=service_type_id).exists():
+                     return JsonResponse({"message":"service type detail not found","status":"400"})
+                 
+                 if not operater_id:
+                     return JsonResponse({"message":"operater  is required",'status':'400'})
+                 
+                 if not Operater.objects.filter(id=operater_id).exists():
+                     return JsonResponse({"message":"service type detail not found","status":"400"})
+                 
+                 if not service_date_time:
+                     return JsonResponse({"message":"Service date and time is required",'status':'400'})
+                 
+                 if not service_notes:
+                     return JsonResponse({"message":"Service notes is required",'status':'400'})
+                 
+           for k in service_item_data:
             
-#         esdata=Establishment.objects.create(customer_id=user ,address_id=AddressID, name=name,establishment_type_id=EstablishmentID)
-#         serializer = EstablishmentSerializer(data=esdata)
-#         esdata.save()
-#         dict_data={'customer_id':customer_id,'address_id':address_id,'name':name,'establishment_type_id':establishment_type_id }
-#         return JsonResponse({"message":"success","status":"200","data":dict_data})
-        
-#     else:
-#         if not customer_id:
-#             return JsonResponse({"message":"customer_id is not available ","status":"400"})
-       
-#         if not User.objects.filter(id=customer_id).exists():
-#             return JsonResponse({"message":"customer_id is does not exits","status":"400"})
-        
-#         if not establishment_type_id:
-#             return JsonResponse({"message":"establishment_type_id is not available ","status":"400"})
-        
-#         if not Establishment_type.objects.filter(id=establishment_type_id).exists():
-#             return JsonResponse({"message":"establishment_type_id is does not exits","status":"400"})
-#         if not name:
-#            return JsonResponse({"message":"name field can not be empty","status":"400"})
-        
-#         if not  unit_number:
-#             return JsonResponse({"message":"unit number is not available ,","status":"400"})
-#         if not  address:
-#             return JsonResponse({"message":"address is not available ,","status":"400"})
-#         if not  city:
-#             return JsonResponse({"message":"city is not available ,","status":"400"})
-#         if not  state:
-#             return JsonResponse({"message":"state is not available ,","status":"400"})
-#         if not  country:
-#             return JsonResponse({"message":"country is not available ,","status":"400"})
-#         if not  zip_code:
-#             return JsonResponse({"message":"zip_code is not available ,","status":"400"})
-#         if not zip_code.isnumeric():
-#             return JsonResponse({"message":"Zipcode must be integer value,","status":"400"})
-#         if len(zip_code)>8 or len(zip_code)<6:
-#             return JsonResponse({"message":"Please Enter valid Zipcode ,","status":"400"})
-#         addressdata=Address.objects.create(unit_number=unit_number,addressline1=address,city=city,state=state,postal_code=zip_code,country_name=country)
-#         serializer2=AddressSerializer(data=addressdata)
-#         addressdata.save()
-#         print(addressdata)
-#         addressid=addressdata.id
-        
-#         user = User.objects.get(id= customer_id)
-#         user.user = user
-#         EstablishmentID = Establishment_type.objects.get(id= establishment_type_id)
-#         EstablishmentID.EstablishmentID =EstablishmentID
-#         AddressID = Address.objects.get(id= addressid)
-#         AddressID.AddressID = AddressID
-        
-#         esdata=Establishment.objects.create(customer_id=user,name=name,establishment_type_id=EstablishmentID,address_id=AddressID)
-#         dict_data={'customer_id':customer_id,'address_id':str(addressid),'name':name,'establishment_type_id':establishment_type_id }
-#         return JsonResponse({"message":"success","status":"200","data":dict_data})    
-    
-    
-    
-    
+                 establishment_id=k['establishment_id']
+                 service_type_id=k['service_type_id']
+                 operater_id=k['operater_id']
+                 service_date_time=k['service_date_time']
+                 service_notes=k['service_notes']
 
-    
- 
+                 Eastablishment_Id = Establishment.objects.get(id=establishment_id)
+                 Eastablishment_Id.Eastablishment_Id = Eastablishment_Id
+
+                 Service_Type_Id = ServiceType.objects.get(id=service_type_id)
+                 Service_Type_Id.Service_Type_Id = Service_Type_Id
+
+                 Operater_Id = Operater.objects.get(id=operater_id)
+                 Operater_Id.Operater_Id = Operater_Id
+                
+                 service_item_data=ServiceItem.objects.create(establishment_id=Eastablishment_Id,service_type_id=Service_Type_Id,operater_id=Operater_Id,service_date_time=service_date_time,service_notes=service_notes)
+                 serializer=ServiceItemSerializer(data=service_item_data)
+
+           return JsonResponse({"message":"service item successfully created",'status':'200'})
+
+# get service item by id
+class GetServiceItemById(APIView):
+     @csrf_exempt
+     def get(self, request,pk,format=None):
+         if not ServiceItem.objects.filter(id=pk).exists():
+                return JsonResponse({"status":"400","message":"service item not found "})
+         else:
+            array=[]
+            service_item = ServiceItem.objects.all().order_by('id')
+            serializer2 =  ServiceItemSerializer(service_item, many=True)
+            for i in serializer2.data:
+                sid=(i['id']) 
+                establishment_id=i['establishment_id']
+                service_type_id=i['service_type_id']
+                operater_id=i['operater_id']
+                service_date_time=i['service_date_time']
+                service_notes=i['service_notes']
+                
+                if sid == pk:
+                    service_item_data={"id":str(sid),"establishment_id":str(establishment_id),"service_type_id":str(service_type_id),"operater_id":str(operater_id),"service_date_time":service_date_time,"service_notes":service_notes}
+                    array.append(service_item_data)             
+            return JsonResponse({"status":"200","message":"success","data":array}) 
+# get all service item detail       
+
+class GetServiceItemDetail(APIView):
+    @csrf_exempt
+    def get(self, request, format=None):
+        operater = ServiceItem.objects.all().order_by('id')
+        serializer = ServiceItemSerializer(operater, many=True)
+        array=[]
+        for i in serializer.data:
+            sid=(i['id']) 
+            establishment_id=i['establishment_id']
+            service_type_id=i['service_type_id']
+            operater_id=i['operater_id']
+            service_date_time=i['service_date_time']
+            service_notes=i['service_notes']
+            service_item_data={"id":str(sid),"establishment_id":str(establishment_id),"service_type_id":str(service_type_id),"operater_id":str(operater_id),"service_date_time":service_date_time,"service_notes":service_notes}
+            array.append(service_item_data)     
+        return JsonResponse({"status": "200","message": "Success","data":array})   
+
+# create multiple customer Api
+
+class CreateMultipleCustomerView(APIView):
+    @csrf_exempt 
+    @action(detail=False, methods=['post'])
+    def post(self, request, format=None):
+        customer_data=request.data.get('customer_data')
+        if not customer_data:
+            return Response({"message":"you can not send empty data", "status":"400"})
+        else:
+
+            for i in customer_data:
+                First_name=i['First_name']
+                Last_name=i['Last_name']
+                email=i['email']
+                title=i['title']
+                mobile=i['mobile']
+                attribute_name=i['attribute_name']
+                password=i['password']
+                position=i['position']
+                role=i['role']
+
+                if not First_name:
+                    return Response({"message":"firstname is required",'status':"400"})
+                
+                if not Last_name:
+                    return Response({"message":"lastname is required",'status':"400"})
+                
+                if not email:
+                    return Response({"message":"email is required",'status':"400"})
+                
+                if '@' not in email:
+                    return Response({"message":"please enter valid email",'status':"400"})
+                
+                if User.objects.filter(email=email).exists():
+
+                    data = {
+                            'message':'Email is Already Exists',
+                            'status':"400",
+                            "data":{}
+                        }
+                    return Response(data)
+                
+                if not mobile:
+                    return Response({"message":"mobile number is required",'status':"400"})
+                
+                if User.objects.filter(mobile=mobile).exists():
+                    data = {
+                            'message':'mobile number is already exist',
+                            'status':"400",
+                            "data":{}
+                        }
+                    return Response(data)
+                
+                if not password:
+                    
+                    return Response({"message":"password is required",'status':"400"})
+                
+                if not role:
+                    return Response({"message":"role is required",'status':"400"})
+                
+                if not role:
+                    return Response({"message":"role is required",'status':"400"})
+                
+                if role !='customer':
+                    return Response({"message":"please enter valid role"})
+            
+            for j in customer_data:
+                    First_name=j['First_name']
+                    Last_name=j['Last_name']
+                    email=j['email']
+                    title=j['title']
+                    mobile=j['mobile']
+                    attribute_name=j['attribute_name']
+                    password=j['password']
+                    position=j['position']
+                    role=j['role']
+                    user_data=User.objects.create(First_name=First_name,Last_name=Last_name,email=email,
+                                                title=title,mobile=mobile,
+                                                attribute_name=attribute_name,position=position,role=role)
+                    user = User.objects.get(email=email)
+                    user.set_password(password)
+                    user.save()
+            return JsonResponse({'message':'Registeration Successfull','status':'200'})
+            
+# create multiple dispatcher 
+class CreateMultipleDispatcherView(APIView): 
+    @csrf_exempt 
+    @action(detail=False, methods=['post'])
+    def post(self, request, format=None):
+        dispatcher_data=request.data.get('dispatcher_data')
+
+        if not dispatcher_data:
+            return Response({"message":"you can not send empty data", "status":"400"})
+        else:
+
+            for i in dispatcher_data:
+                First_name=i['First_name']
+                Last_name=i['Last_name']
+                email=i['email']
+                title=i['title']
+                mobile=i['mobile']
+                attribute_name=i['attribute_name']
+                password=i['password']
+                position=i['position']
+                role=i['role']
+
+                if not First_name:
+                    return Response({"message":"firstname is required",'status':"400"})
+                
+                if not Last_name:
+                    return Response({"message":"lastname is required",'status':"400"})
+                
+                if not email:
+                    return Response({"message":"email is required",'status':"400"})
+                
+                if '@' not in email:
+                    return Response({"message":"please enter valid email",'status':"400"})
+                
+                if User.objects.filter(email=email).exists():
+
+                    data = {
+                            'message':'Email is Already Exists',
+                            'status':"400",
+                            "data":{}
+                        }
+                    return Response(data)
+                
+                if not mobile:
+                    return Response({"message":"mobile number is required",'status':"400"})
+                
+                if User.objects.filter(mobile=mobile).exists():
+                    data = {
+                            'message':'mobile number is already exist',
+                            'status':"400",
+                            "data":{}
+                        }
+                    return Response(data)
+                
+                if not password:
+                    
+                    return Response({"message":"password is required",'status':"400"})
+                
+                if not role:
+                    return Response({"message":"role is required",'status':"400"})
+                
+                if not role:
+                    return Response({"message":"role is required",'status':"400"})
+                
+                if role !='dispatcher':
+                    return Response({"message":"please enter valid role"})
+            
+            for j in dispatcher_data:
+                    First_name=j['First_name']
+                    Last_name=j['Last_name']
+                    email=j['email']
+                    title=j['title']
+                    mobile=j['mobile']
+                    attribute_name=j['attribute_name']
+                    password=j['password']
+                    position=j['position']
+                    role=j['role']
+                    user_data=User.objects.create(First_name=First_name,Last_name=Last_name,email=email,
+                                                title=title,mobile=mobile,
+                                                attribute_name=attribute_name,position=position,role=role)
+                    user = User.objects.get(email=email)
+                    user.set_password(password)
+                    user.save()
+
+            return JsonResponse({'message':'Registeration Successfull','status':'200'})
+            
+
+       

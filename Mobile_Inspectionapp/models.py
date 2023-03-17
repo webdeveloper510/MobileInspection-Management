@@ -3,7 +3,6 @@ from django.contrib.auth.models import *
 from .validater import *
 from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib.auth.models import AbstractBaseUser,BaseUserManager
-# from Mobile_Inspectionapp.manager import CustomUserManager
 from django.contrib.auth.models import UserManager
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
@@ -63,7 +62,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     Last_name = models.CharField(max_length=50, null=False,default="")
     email = models.EmailField(max_length=50, null=False,default="",unique=True)
     title=models.CharField(max_length=50, null=True,blank=True,default="")
-    role=models.CharField(max_length=50, null=False,default="",choices=USER_TYPE_CHOICES)
+    role=models.CharField(max_length=50, null=True,blank=True,default="customer",choices=USER_TYPE_CHOICES)
     mobile=models.CharField(max_length=50, null=False,default="")
     attribute_name=models.CharField(max_length=50, null=True,blank=True,default="")
     password = models.CharField(max_length=250,null=False)
@@ -76,6 +75,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     updated_at =  models.DateTimeField(auto_now=True)
     is_admin = models.BooleanField(default=False)
     is_superuser=models.BooleanField(default=False)
+    user_created_by_admin=models.BooleanField(default=False)
     objects = UserManager()
     USERNAME_FIELD = "email"
     # REQUIRED_FIELDS = []
@@ -103,31 +103,6 @@ class User(AbstractBaseUser,PermissionsMixin):
         verbose_name="User"
 
 
-class Lead(models.Model):
-    firstname=models.CharField(max_length=500,null=False)
-    lastname=models.CharField(max_length=500,null=False)
-    phone=models.CharField(max_length=500,null=False)
-    email=models.EmailField()
-    comment=models.TextField(max_length=500,null=False)
-    date=models.DateField()
-    time=models.TimeField()
-    
-    def __str__(self):
-        return "{} -{}".format(self.firstname)   
-    
-class LeadAddress(models.Model):
-    customer_id = models.ForeignKey(Lead, on_delete=models.CASCADE)
-    street_number=models.CharField(max_length=500,null=False)
-    unit_number=models.CharField(max_length=500,null=False)
-    addressline1=models.CharField(max_length=500,null=False)
-    addressline2=models.CharField(max_length=500,null=False)
-    city=models.CharField(max_length=500,null=False)
-    state=models.CharField(max_length=500,null=False)
-    postal_code=models.CharField(max_length=500,null=False)
-    country_name=models.CharField(max_length=500,null=False)
-    
-    def __str__(self):
-        return "{} -{}".format(self.customer_id) 
         
 class ServiceAgreement(models.Model):
     customer_id = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -174,18 +149,7 @@ class Promotion(models.Model):
     start_date=models.DateField()
     end_date=models.DateField()
     
-class Promotion_Category(models.Model):
-    promotion_id= models.ForeignKey(Promotion, on_delete=models.CASCADE)
-    service_type_id= models.ForeignKey(ServiceType, on_delete=models.CASCADE)
-    
-class Operater(models.Model):
-    firstname=models.CharField(max_length=500,null=False)
-    lastname=models.CharField(max_length=500,null=False)
-    phone=models.CharField(max_length=500,null=False)
-    email=models.EmailField()
-    title=models.CharField(max_length=500,null=False)
-    password =models.CharField(max_length=50)
-    operater_type=models.CharField(max_length=500,null=False)
+
 
 class Address(models.Model):
     customer_id = models.ForeignKey(User, on_delete=models.CASCADE,blank=True,null=True)
@@ -218,22 +182,6 @@ class Establishment_Contact(models.Model):
     title=models.CharField(max_length=250,null=True)
     phone=PhoneNumberField(max_length=250,null=True)
 
-    
-    
-class Service_Order(models.Model):
-    User_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    service_id = models.ForeignKey(Service, on_delete=models.CASCADE)
-    order_status=models.CharField(max_length=250,null=False)
-    operater_id = models.ForeignKey(Operater, on_delete=models.CASCADE)
-    service_datetime=models.DateTimeField()
-    service_fee = models.FloatField()
-    total_amount = models.FloatField()
-    requested_service_datetime=models.DateTimeField()
-    Establishment_id = models.ForeignKey(Establishment, on_delete=models.CASCADE)
-   
-    
-    def __str__(self):
-        return "{} -{}".format(self.User_id)     
 
 class Contact(models.Model):
     firstname=models.CharField(max_length=500,null=True,blank=True)
@@ -247,12 +195,24 @@ class Contact(models.Model):
     country=models.CharField(max_length=500,null=True,blank=True)
     zipcode=models.IntegerField(null=True,blank=True)
     comment=models.TextField(max_length=500,null=True,blank=True)
-    
-class Cart(models.Model):
-    service_id = models.ForeignKey(Service, on_delete=models.CASCADE, null=False, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+
 
 class uploadpdf(models.Model):
     uploadfile=models.FileField(upload_to="products_images/",blank=True,null=True)
+
+#new
+class Operater(models.Model):
+    firstname=models.CharField(max_length=500,null=False)
+    lastname=models.CharField(max_length=500,null=False)
+    phone=models.CharField(max_length=500,null=False)
+    email=models.EmailField()
+    position=models.CharField(max_length=500,null=False)
+    operater_type=models.CharField(max_length=500,null=False,default="None")
+#new
+class ServiceItem(models.Model):
+    establishment_id= models.ForeignKey(Establishment, on_delete=models.CASCADE ,null=True)
+    service_type_id= models.ForeignKey(ServiceType, on_delete=models.CASCADE ,null=True)
+    operater_id=models.ForeignKey(Operater, on_delete=models.CASCADE ,null=True)
+    service_date_time=models.DateTimeField()
+    service_notes=models.TextField(max_length=1000,null=True,blank=True)
     

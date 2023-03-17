@@ -2,40 +2,63 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.db.models import Q 
 from .models import *
-from django.core.exceptions import ValidationError
-from rest_framework.validators import UniqueValidator
-from uuid import uuid4
 from .validater import *
-from phonenumber_field.serializerfields import PhoneNumberField
+# from django.core.exceptions import ValidationError
+# from rest_framework.validators import UniqueValidator
+# from uuid import uuid4
+
+# from phonenumber_field.serializerfields import PhoneNumberField
 
 
-class UserSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        validators=[UniqueValidator(queryset=User.objects.all())],required=True
-        )
-    First_name = serializers.CharField(max_length=50,required=True)
-    Last_name = serializers.CharField(max_length=50,required=True)
-    title = serializers.CharField(max_length=50,required=False)
-    mobile =  PhoneNumberField()
-    attribute_name = serializers.CharField(max_length=50,required=False)
-    password = serializers.CharField(max_length=250,required=True)
-    class Meta:
-        model = User
-        fields  = ['id','email', 'First_name','Last_name','title','mobile','attribute_name', 'password']
+# class UserSerializer(serializers.ModelSerializer):
+#     email = serializers.EmailField(
+#         validators=[UniqueValidator(queryset=User.objects.all())],required=True
+#         )
+#     First_name = serializers.CharField(max_length=50,required=True)
+#     Last_name = serializers.CharField(max_length=50,required=True)
+#     title = serializers.CharField(max_length=50,required=False)
+#     mobile =  PhoneNumberField()
+#     attribute_name = serializers.CharField(max_length=50,required=False)
+#     password = serializers.CharField(max_length=250,required=True)
+#     class Meta:
+#         model = User
+#         fields  = ['id','email', 'First_name','Last_name','title','mobile','attribute_name', 'password']
        
-        # extra_kwargs={
+#         # extra_kwargs={
         
-        #     'First_name': {'error_messages': {'required': "Firstname is required",'blank':'please provide a firstname'}},
-        #     'Last_name': {'error_messages': {'required': "Lastname is required",'blank':'please provide a lastname'}},
-        #     'email': {'error_messages': {'required': "email is required",'blank':'please provide a email'}},
-        #     'password': {'error_messages': {'required': "password is required",'blank':'please Enter a password'}},
-        #     'mobile': {'error_messages': {'required': "mobile is required",'blank':'please Enter a mobile'}},
-        #           }
+#         #     'First_name': {'error_messages': {'required': "Firstname is required",'blank':'please provide a firstname'}},
+#         #     'Last_name': {'error_messages': {'required': "Lastname is required",'blank':'please provide a lastname'}},
+#         #     'email': {'error_messages': {'required': "email is required",'blank':'please provide a email'}},
+#         #     'password': {'error_messages': {'required': "password is required",'blank':'please Enter a password'}},
+#         #     'mobile': {'error_messages': {'required': "mobile is required",'blank':'please Enter a mobile'}},
+#         #           }
        
-    def create(self, validate_data):
-     return User.objects.create(**validate_data)
+#     def create(self, validate_data):
+#      return User.objects.create(**validate_data)
 
 
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=User
+        fields=['id','email','password','First_name','Last_name','mobile','title','role','position','attribute_name']
+        extra_kwargs = {'password': {'write_only': True}}
+    def validate(self, attrs):
+      password=attrs.get('password')   
+      return attrs
+    def create(self, validated_data,):
+       user=User.objects.create(
+       email=validated_data['email'],
+       First_name=validated_data['First_name'],
+       Last_name=validated_data['Last_name'],
+       title=validated_data['title'],
+       attribute_name=validated_data['attribute_name'],
+       mobile=validated_data['mobile'],
+       position=validated_data['position'],)
+       user.set_password(validated_data['password']) 
+       user.save()
+       return user
+     
+    
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -114,14 +137,6 @@ class Establishment_ContactSerializer(serializers.ModelSerializer):
          return Establishment_Contact.objects.create(**validate_data)
 
      
-class ServiceorderSerializer(serializers.ModelSerializer):
-     class Meta:
-        model= Service_Order
-        fields = '__all__'
-           
-     def create(self, validate_data):
-         return Service_Order.objects.create(**validate_data)
-     
 class Customer_AddressSerializer(serializers.ModelSerializer):
      class Meta:
         model= Customer_Address
@@ -137,31 +152,19 @@ class UploadpdfSerializer(serializers.ModelSerializer):
            
      def create(self, validate_data):
          return uploadpdf.objects.create(**validate_data)
-
-
-
-
-
-class UserRegistrationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=User
-        fields=['id','email','password','First_name','Last_name','mobile','title','role','position','attribute_name']
-        extra_kwargs = {'password': {'write_only': True}}
-    def validate(self, attrs):
-      password=attrs.get('password')   
-      return attrs
-    def create(self, validated_data,):
-       user=User.objects.create(
-       email=validated_data['email'],
-       First_name=validated_data['First_name'],
-       Last_name=validated_data['Last_name'],
-       title=validated_data['title'],
-       attribute_name=validated_data['attribute_name'],
-       mobile=validated_data['mobile'],
-       role=validated_data['role'],
-       position=validated_data['position'],)
-       user.set_password(validated_data['password']) 
-       user.save()
-       return user
+#new
+class OperaterSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= Operater
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return Operater.objects.create(**validate_data)
      
-    
+class ServiceItemSerializer(serializers.ModelSerializer):
+     class Meta:
+        model= ServiceItem
+        fields = '__all__'
+           
+     def create(self, validate_data):
+         return ServiceItem.objects.create(**validate_data)

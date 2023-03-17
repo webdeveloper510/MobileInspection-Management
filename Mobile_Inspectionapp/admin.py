@@ -4,7 +4,6 @@ from django.contrib.auth.admin import UserAdmin
 from .models import *
 from django import forms
 from django.contrib import admin
-from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
@@ -14,7 +13,7 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active',)
+        fields = ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','user_created_by_admin',)
 
     def clean_password2(self):
         password = self.cleaned_data.get("password")
@@ -33,7 +32,7 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email','First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active')
+        fields = ('email','First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','user_created_by_admin',)
 
     def clean_password(self):
         
@@ -45,7 +44,7 @@ class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
 
-    list_display = ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','is_admin','is_superuser',)
+    list_display = ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','is_admin','is_superuser','user_created_by_admin',)
     list_filter = ('is_admin',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
@@ -56,7 +55,7 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','is_admin','is_superuser',)}
+            'fields': ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','is_admin','is_superuser','user_created_by_admin',)}
         ),
     )
     readonly_fields =('is_superuser',)
@@ -74,8 +73,8 @@ class UserAdmin(BaseUserAdmin):
     # def has_add_permission(self, request, obj=None):
     #     return request.user.is_superuser
 
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
+    # def has_delete_permission(self, request, obj=None):
+    #     return request.user.is_superuser
 
 admin.site.register(User, UserAdmin)
 
@@ -91,40 +90,24 @@ class Service_ImageAdmin(admin.ModelAdmin):
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
   list_display = ('id','service_type_id','name','description')
-@admin.register(Operater)
-class OperaterAdmin(admin.ModelAdmin):
-  list_display = ('id','firstname','lastname','phone','email','title','password','operater_type')
-@admin.register(Lead)
-class LeadAdmin(admin.ModelAdmin):
-  list_display = ('id','firstname','lastname','phone','email','comment','date','time')
-@admin.register(LeadAddress)
-class LeadAddressAdmin(admin.ModelAdmin):
-  list_display = ('id','customer_id','street_number','unit_number','addressline1','addressline2','city','state','postal_code','country_name')
+  
 @admin.register(Establishment)
 class EstablishmentAdmin(admin.ModelAdmin):
   list_display = ('id','customer_id','address_id','name','establishment_type_id')
 @admin.register(Establishment_type)
 class Establishment_typeAdmin(admin.ModelAdmin):
   list_display = ('id','Establishment_type')
-@admin.register(Service_Order)
-class Service_OrderAdmin(admin.ModelAdmin):
-  list_display = ('id','User_id','service_id','order_status','operater_id','service_datetime','service_fee','total_amount','requested_service_datetime','Establishment_id')
+
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
   list_display = ('id','customer_id','unit_number','addressline1','city','state','postal_code','country_name')
-@admin.register(Promotion_Category)
-class Promotion_CategoryAdmin(admin.ModelAdmin):
-  list_display = ('id','promotion_id','service_type_id')
+
 @admin.register(Promotion)
 class PromotionAdmin(admin.ModelAdmin):
   list_display = ('id','name','promocode','discount_rate','start_date','end_date')
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
   list_display = ('id','firstname','lastname','email','phone','address','city','state','country','zipcode','comment')
-
-@admin.register(Cart)
-class CartAdmin(admin.ModelAdmin):
-  list_display = ('id','service_id','created_at','updated_at')
 
 @admin.register(Customer_Address)
 class Customer_AddressAdmin(admin.ModelAdmin):
@@ -137,3 +120,11 @@ class uploadpdfAdmin(admin.ModelAdmin):
 @admin.register(Establishment_Contact)
 class Establishment_ContactfAdmin(admin.ModelAdmin):
   list_display = ('id','establishment_id','customer_id','firstname','lastname','title','phone')  
+
+@admin.register(Operater)
+class OperaterAdmin(admin.ModelAdmin):
+  list_display = ('id','firstname','lastname','phone','email','position','operater_type')  
+
+@admin.register(ServiceItem)
+class ServiceItemAdmin(admin.ModelAdmin):
+  list_display = ('id','establishment_id','service_type_id','operater_id','service_date_time','service_notes')  

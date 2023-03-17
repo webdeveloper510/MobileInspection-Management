@@ -9,9 +9,11 @@ from django.contrib import admin
 urlpatterns = [
     path('login/',UserLoginView.as_view(),name='login'),
     path('logout/',Logout.as_view(),name='logout'),
-    path('password_set/',PasswordSetViewSet.as_view()),
     path('register/',RegisterView.as_view(),name='register'),
+    path('create_multiple_customer/',CreateMultipleCustomerView.as_view(),name='CreateMultipleCustomer'),
+    path('create_multiple_dispatcher/',CreateMultipleDispatcherView.as_view(),name='CreateMultipleDispatcher'),
     path('resetpasswordlink/',SendPasswordResetLink.as_view(), name='send-reset-password link'),
+    path('password_set/',PasswordSetViewSet.as_view()),
     path('contact/',ContactView.as_view(),name='contact'),
     path('serviceagreement/',ServiceAgreementView.as_view(),name='service_agreement'),
     path('servicetype/',ServiceTypeView.as_view(),name='servicetype'),
@@ -39,6 +41,13 @@ urlpatterns = [
     path('profileupdate/',Profileupdate.as_view(),name="update"),
     path('promocode_discount/',PromocodeDiscountView.as_view(),name="promo"),
     path('establishment_contact_list/<int:pk>',Establishment_contact_listView.as_view()),
+    path('create_operater/',CreateOperaterView.as_view(),name="create_operater"),# create operater new
+    path('update_operater/<int:pk>',UpdateOperaterView.as_view(),name="update_operater"),# update operater new
+    path('get_operater_by_id/<int:pk>',GetOperaterById.as_view(),name="getoperater_byid"),# get operater by id new
+    path('get_operater/',GetOperaterDetail.as_view(),name="getoperater"),# get all operater detail new
+    path('create_service_item/',CreateServiceItemView.as_view(),name="create_service_item"),# create service item new
+    path('get_serviceitem_by_id/<int:pk>',GetServiceItemById.as_view(),name="GetServiceItemById"),# get service item by id
+    path('get_service_item/',GetServiceItemDetail.as_view(),name="GetServiceItemDetail"),# get all service item detail new
     path('test/',TestSectionView.as_view(),name="test"),
 ]
 if settings.DEBUG:
