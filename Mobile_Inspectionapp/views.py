@@ -1213,7 +1213,7 @@ class CreateServiceItemView(APIView):
                      return JsonResponse({"message":"operater  is required",'status':'400'})
                  
                  if not Operater.objects.filter(id=operater_id).exists():
-                     return JsonResponse({"message":"service type detail not found","status":"400"})
+                     return JsonResponse({"message":"operater detail not found","status":"400"})
                  
                  if not service_date_time:
                      return JsonResponse({"message":"Service date and time is required",'status':'400'})
@@ -1240,7 +1240,7 @@ class CreateServiceItemView(APIView):
                 
                  service_item_data=ServiceItem.objects.create(establishment_id=Eastablishment_Id,service_type_id=Service_Type_Id,operater_id=Operater_Id,service_date_time=service_date_time,service_notes=service_notes)
                  serializer=ServiceItemSerializer(data=service_item_data)
-
+                 service_item_data.save()
            return JsonResponse({"message":"service item successfully created",'status':'200'})
 
 # get service item by id
@@ -1291,8 +1291,17 @@ class CreateMultipleCustomerView(APIView):
     @action(detail=False, methods=['post'])
     def post(self, request, format=None):
         customer_data=request.data.get('customer_data')
+        dispatcher_id=request.data.get('dispatcher_id')
+      
         if not customer_data:
             return Response({"message":"you can not send empty data", "status":"400"})
+        
+        if not dispatcher_id:
+            return Response({"message":"dispatcher detail is required", "status":"400"})
+       
+        if not  User.objects.filter(id=dispatcher_id,role="dispatcher").exists():
+            return Response({"message":"dispatcher details does not exist ", "status":"400"})
+        
         else:
 
             for i in customer_data:
@@ -1363,21 +1372,95 @@ class CreateMultipleCustomerView(APIView):
                     role=j['role']
                     user_data=User.objects.create(First_name=First_name,Last_name=Last_name,email=email,
                                                 title=title,mobile=mobile,
-                                                attribute_name=attribute_name,position=position,role=role)
+                                                attribute_name=attribute_name,position=position,role=role,dispatcher_user_id=dispatcher_id)
                     user = User.objects.get(email=email)
                     user.set_password(password)
                     user.save()
             return JsonResponse({'message':'Registeration Successfull','status':'200'})
-            
+
+# update multiple customer
+class UpdateMultipleCustomerView(APIView):
+    def post(self, request,format=None):
+      dispatcher_id=request.data.get('dispatcher_id')
+      update_customer_data=request.data.get('update_customer_data')
+     
+      if not update_customer_data:
+            return Response({"message":"you can not send empty data", "status":"400"})
+
+      if not dispatcher_id:
+        return Response({"message":"dispatcher detail is required", "status":"400"})
+      
+      if not  User.objects.filter(dispatcher_user_id=dispatcher_id).exists():
+            return Response({"message":"dispatcher does not exist ", "status":"400"})
+     
+      else:
+          for i in update_customer_data:
+                customer_id=i['customer_id']
+                First_name=i['First_name']
+                Last_name=i['Last_name']
+                email=i['email']
+                title=i['title']
+                mobile=i['mobile']
+                attribute_name=i['attribute_name']
+                position=i['position']
+               
+
+                if not customer_id:
+                    return Response({"message":"customer id is required", "status":"400"})
+                
+                if not User.objects.filter(id=customer_id,dispatcher_user_id=dispatcher_id).exists():
+                    return Response({"message":"user with this dispatcher does not exists", "status":"400"})
+                
+          for j in update_customer_data:
+                customer_id=j['customer_id']
+                First_name=j['First_name']
+                Last_name=j['Last_name']
+                email=j['email']
+                title=j['title']
+                mobile=j['mobile']
+                attribute_name=j['attribute_name']
+                position=j['position']
+               
+
+                if First_name:
+                     data=User.objects.filter(id=customer_id).update(First_name=First_name)
+
+                if Last_name:
+                     data=User.objects.filter(id=customer_id).update(Last_name=Last_name)
+
+                if email:
+                     data=User.objects.filter(id=customer_id).update(email=email)
+                
+                if title:
+                     data=User.objects.filter(id=customer_id).update(title=title)
+
+                if mobile:
+                     data=User.objects.filter(id=customer_id).update(mobile=mobile)
+
+                if attribute_name:
+                     data=User.objects.filter(id=customer_id).update(attribute_name=attribute_name)
+               
+                if position:
+                     data=User.objects.filter(id=customer_id).update(position=position)
+
+      return JsonResponse({'message':'customer data updated successfully','status':'200'})         
+
 # create multiple dispatcher 
 class CreateMultipleDispatcherView(APIView): 
     @csrf_exempt 
     @action(detail=False, methods=['post'])
     def post(self, request, format=None):
         dispatcher_data=request.data.get('dispatcher_data')
+        dispatcher_id=request.data.get('dispatcher_id')
+        
 
         if not dispatcher_data:
             return Response({"message":"you can not send empty data", "status":"400"})
+        if not dispatcher_id:
+            return Response({"message":"dispatcher id is required", "status":"400"})
+       
+        if not  User.objects.filter(id=dispatcher_id,role="dispatcher").exists():
+            return Response({"message":"dispatcher id  does not exist ", "status":"400"})
         else:
 
             for i in dispatcher_data:
@@ -1448,12 +1531,79 @@ class CreateMultipleDispatcherView(APIView):
                     role=j['role']
                     user_data=User.objects.create(First_name=First_name,Last_name=Last_name,email=email,
                                                 title=title,mobile=mobile,
-                                                attribute_name=attribute_name,position=position,role=role)
+                                                attribute_name=attribute_name,position=position,role=role,dispatcher_user_id=dispatcher_id)
                     user = User.objects.get(email=email)
                     user.set_password(password)
                     user.save()
-
             return JsonResponse({'message':'Registeration Successfull','status':'200'})
             
+# update multiple dispatcher
+class UpdateMultipleDispatcherView(APIView):
+    def post(self, request,format=None):
+      dispatcher_id=request.data.get('dispatcher_id')
+      update_dispatcher_data=request.data.get('update_dispatcher_data')
+      
+      if not update_dispatcher_data:
+            return Response({"message":"you can not send empty data", "status":"400"})
 
+      if not dispatcher_id:
+        return Response({"message":"dispatcher id is required", "status":"400"})
+      
+      if not  User.objects.filter(dispatcher_user_id=dispatcher_id).exists():
+            return Response({"message":"dispatcher does not exist ", "status":"400"})
+     
+      else:
+          for i in update_dispatcher_data:
+                dispatcherid=i['dispatcherid']
+                First_name=i['First_name']
+                Last_name=i['Last_name']
+                email=i['email']
+                title=i['title']
+                mobile=i['mobile']
+                attribute_name=i['attribute_name']
+                position=i['position']
+               
+
+                if not dispatcherid:
+                    return Response({"message":"customer id is required", "status":"400"})
+                
+                if not User.objects.filter(id=dispatcherid,dispatcher_user_id=dispatcher_id).exists():
+                    return Response({"message":"user with this dispatcher does not exists", "status":"400"})
+                
+                if  User.objects.filter(email=email).exists():
+                     return Response({"message":"user with this email id is already exists", "status":"400"})
+                
+          for j in update_dispatcher_data:
+                dispatcherid=j['dispatcherid']
+                First_name=j['First_name']
+                Last_name=j['Last_name']
+                email=j['email']
+                title=j['title']
+                mobile=j['mobile']
+                attribute_name=j['attribute_name']
+                position=j['position']
+               
+
+                if First_name:
+                     data=User.objects.filter(id=dispatcherid).update(First_name=First_name)
+
+                if Last_name:
+                     data=User.objects.filter(id=dispatcherid).update(Last_name=Last_name)
+
+                if email:
+                     data=User.objects.filter(id=dispatcherid).update(email=email)
+                
+                if title:
+                     data=User.objects.filter(id=dispatcherid).update(title=title)
+
+                if mobile:
+                     data=User.objects.filter(id=dispatcherid).update(mobile=mobile)
+
+                if attribute_name:
+                     data=User.objects.filter(id=dispatcherid).update(attribute_name=attribute_name)
+               
+                if position:
+                     data=User.objects.filter(id=dispatcherid).update(position=position)
+
+      return JsonResponse({'message':'dispatcher data updated successfully','status':'200'})   
        

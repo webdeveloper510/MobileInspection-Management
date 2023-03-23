@@ -76,6 +76,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     is_admin = models.BooleanField(default=False)
     is_superuser=models.BooleanField(default=False)
     user_created_by_admin=models.BooleanField(default=False)
+    dispatcher_user_id=models.CharField(max_length=500, null=True, default="",blank=True)
     objects = UserManager()
     USERNAME_FIELD = "email"
     # REQUIRED_FIELDS = []

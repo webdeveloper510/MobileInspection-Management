@@ -175,7 +175,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://54.201.14.154:8000",
     "http://54.201.14.154",
     "http://3.90.226.115",
-    "https://inspectionsquad.com"
+    "https://inspectionsquad.com",
+    "https://api.inspectionsquad"
     ]
 
 STATICFILES_DIRS = [
@@ -211,12 +212,12 @@ SIMPLE_JWT = {
 
 
 #Stripe
-API_PUBLISH_KEY = 'API_PUBLISH_KEY'
+API_PUBLISH_KEY = 'pk_test_51LixZiJTvBqbiOKnPcS69thhnqhwWqXz4RZteSKyoBjG1CytGinFMveOjGlNUqE7F9AZYpJRasUy1uwhxSrpZvoO008CcnCRNR'
 API_SECRET_KEY = 'API_SECRET_KEY'
 
 #Paypal
-CLIENT_ID = "CLIENT_ID"
-CLIENT_SECRET = "CLIENT_SECRET"
+CLIENT_ID =  "AZbSbes1HlwmiI-7wGONJKIA8XTptRIxkKrZ1HSha7mVStBhTr98OVifJxEe2dYjOtxNo3laHlMFzeg1"
+CLIENT_SECRET = 'sk_test_51LixZiJTvBqbiOKnTOF6W6uR1T0f8DMSg6vcAIgyUbTsglCBVOtFy3EK0RlNOVet8OIaXczjMx24otCXwbBd2Msm00PQNhYgJr'
 
 #Email Configration
 EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"

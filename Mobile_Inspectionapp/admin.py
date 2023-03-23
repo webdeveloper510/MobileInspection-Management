@@ -13,7 +13,7 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','user_created_by_admin',)
+        fields = ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','user_created_by_admin','dispatcher_user_id')
 
     def clean_password2(self):
         password = self.cleaned_data.get("password")
@@ -32,7 +32,7 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email','First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','user_created_by_admin',)
+        fields = ('email','First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','user_created_by_admin','dispatcher_user_id')
 
     def clean_password(self):
         
@@ -44,7 +44,7 @@ class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
 
-    list_display = ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','is_admin','is_superuser','user_created_by_admin',)
+    list_display = ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','is_admin','is_superuser','user_created_by_admin','dispatcher_user_id')
     list_filter = ('is_admin',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
@@ -55,7 +55,7 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','is_admin','is_superuser','user_created_by_admin',)}
+            'fields': ('email', 'First_name', 'Last_name','title','role','password','mobile','attribute_name','position','token','is_active','is_admin','is_superuser','user_created_by_admin','dispatcher_user_id')}
         ),
     )
     readonly_fields =('is_superuser',)
