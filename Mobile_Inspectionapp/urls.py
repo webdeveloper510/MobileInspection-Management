@@ -48,8 +48,10 @@ urlpatterns = [
     path('get_operater_by_id/<int:pk>',GetOperaterById.as_view(),name="getoperater_byid"),# get operater by id new
     path('get_operater/',GetOperaterDetail.as_view(),name="getoperater"),# get all operater detail new
     path('create_service_item/',CreateServiceItemView.as_view(),name="create_service_item"),# create service item new
+    path('update_service_item/<int:pk>',UpdateServiceItemView.as_view(),name="update_service_item"),# create service item new
     path('get_serviceitem_by_id/<int:pk>',GetServiceItemById.as_view(),name="GetServiceItemById"),# get service item by id
     path('get_service_item/',GetServiceItemDetail.as_view(),name="GetServiceItemDetail"),# get all service item detail new
+    path('user_details_by_dispatcher_id/', UserDetailByDispatcherIdView.as_view(),name="GetDispatcherDetailByDispatcherId"),#brand new
     path('test/',TestSectionView.as_view(),name="test"),
 ]
 if settings.DEBUG:

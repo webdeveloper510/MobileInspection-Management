@@ -209,11 +209,13 @@ class Operater(models.Model):
     email=models.EmailField()
     position=models.CharField(max_length=500,null=False)
     operater_type=models.CharField(max_length=500,null=False,default="None")
+    dispatcher_id=models.ForeignKey(User, on_delete=models.CASCADE ,null=True)
 #new
 class ServiceItem(models.Model):
-    establishment_id= models.ForeignKey(Establishment, on_delete=models.CASCADE ,null=True)
-    service_type_id= models.ForeignKey(ServiceType, on_delete=models.CASCADE ,null=True)
-    operater_id=models.ForeignKey(Operater, on_delete=models.CASCADE ,null=True)
+    establishment_id= models.ForeignKey(Establishment, on_delete=models.CASCADE ,null=True,blank=True,default='None')
+    service_type_id= models.ForeignKey(ServiceType, on_delete=models.CASCADE ,null=True,blank=True)
+    operater_id=models.ForeignKey(Operater, on_delete=models.CASCADE ,null=True,blank=True)
     service_date_time=models.DateTimeField()
     service_notes=models.TextField(max_length=1000,null=True,blank=True)
+    dispatcher_id=models.ForeignKey(User, on_delete=models.CASCADE ,null=True)
     

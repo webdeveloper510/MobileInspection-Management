@@ -40,7 +40,7 @@ from .validater import *
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
-        fields=['id','email','password','First_name','Last_name','mobile','title','role','position','attribute_name']
+        fields=['id','email','password','First_name','Last_name','mobile','title','role','position','attribute_name','dispatcher_user_id']
         extra_kwargs = {'password': {'write_only': True}}
     def validate(self, attrs):
       password=attrs.get('password')   

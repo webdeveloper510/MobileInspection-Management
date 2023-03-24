@@ -1058,8 +1058,15 @@ class  CreateOperaterView(APIView):# new
      @csrf_exempt
      def post(self, request,format=None): 
          
+         dispatcher_id=request.data.get('dispatcher_id')
          operater_data=request.data.get('operater_data')
 
+         if not dispatcher_id:
+              return Response({"message":"dispatcher detail required","status":"400"})
+         
+         if not User.objects.filter(id=dispatcher_id,role="dispatcher").exists():
+              return Response({"message":"invalid dispatcher detail","status":"400"})
+         
          if not operater_data:
              return Response({"message":"you can not send empty detail","status":"400"})
          
@@ -1095,7 +1102,9 @@ class  CreateOperaterView(APIView):# new
                  phone=j['phone']
                  email=j['email']
                  position=j['position']    
-                 operater_data=Operater.objects.create(firstname=firstname,lastname=lastname,phone=phone,email=email,position=position)
+                 Dispatcher_Id = User.objects.get(id=dispatcher_id)
+                 Dispatcher_Id.Dispatcher_Id = Dispatcher_Id
+                 operater_data=Operater.objects.create(firstname=firstname,lastname=lastname,phone=phone,email=email,position=position,dispatcher_id=Dispatcher_Id)
                  serializer=OperaterSerializer(data=operater_data)
                  operater_data.save()
                  
@@ -1104,40 +1113,62 @@ class  CreateOperaterView(APIView):# new
 class UpdateOperaterView(APIView):# new
   @csrf_exempt
   def post(self, request, pk, format=None):
-      firstname=request.data.get('firstname')
-      lastname=request.data.get('lastname')
-      phone=request.data.get('phone')
-      email=request.data.get('email')
-      position=request.data.get('position')
-
-      if not Operater.objects.filter(id=pk).exists():
-          return JsonResponse({"message":"invalid operater detail","status":"400"})
-      else:
-          
-          if firstname:
-               data=Operater.objects.filter(id=pk).update(firstname=firstname)
-
-          if lastname:
-                 data=Operater.objects.filter(id=pk).update(lastname=lastname)   
-
-          if phone:
-                 data=Operater.objects.filter(id=pk).update(phone=phone)
-
-          if email:
-               data=Operater.objects.filter(id=pk).update(email=email)
-
-          if position:
-               data=Operater.objects.filter(id=pk).update(position=position)
-              
-
-      return JsonResponse({"message":"details successfully updated","status":"200"})
       
-#get by operater id
+      operater_update_data=request.data.get('operater_update_data')
+
+      if not Operater.objects.filter(dispatcher_id=pk).exists():
+          return JsonResponse({"message":"invalid dispatcher detail","status":"400"})
+      else:
+      
+        for j in operater_update_data:
+        
+            operater_id=j['operater_id']
+            firstname=j['firstname']
+            lastname=j['lastname']
+            phone=j['phone']
+            email=j['email']
+            position=j['position']    
+            
+            if not operater_id:
+             return JsonResponse({"message":"operater detail required","status":"400"})
+            
+            if not Operater.objects.filter(id=operater_id).exists():
+             return JsonResponse({"message":" operater does not exist with this dispatcher detail","status":"400"})
+        
+        for k in operater_update_data:
+        
+            operater_id=k['operater_id']
+            firstname=k['firstname']
+            lastname=k['lastname']
+            phone=k['phone']
+            email=k['email']
+            position=k['position']  
+       
+            
+            if firstname:
+                data=Operater.objects.filter(id=operater_id).update(firstname=firstname)
+
+            if lastname:
+                    data=Operater.objects.filter(id=operater_id).update(lastname=lastname)   
+
+            if phone:
+                    data=Operater.objects.filter(id=operater_id).update(phone=phone)
+
+            if email:
+                data=Operater.objects.filter(id=operater_id).update(email=email)
+
+            if position:
+                data=Operater.objects.filter(id=operater_id).update(position=position)
+                
+
+        return JsonResponse({"message":"details successfully updated","status":"200"})
+      
+#get by dispatcher id
 class GetOperaterById(APIView):
      @csrf_exempt
      def get(self, request,pk,format=None):
-         if not Operater.objects.filter(id=pk).exists():
-                return JsonResponse({"status":"400","message":"Operater not found"})
+         if not Operater.objects.filter(dispatcher_id=pk).exists():
+                return JsonResponse({"status":"400","message":"dispatcher not found"})
          else:
             array=[]
             operater = Operater.objects.all().order_by('id')
@@ -1149,11 +1180,12 @@ class GetOperaterById(APIView):
                 phone=(i['phone']) 
                 email=(i['email']) 
                 position=(i['position']) 
+                dispatcher_id=(i['dispatcher_id']) 
                 
-                if oid == pk:
+                if dispatcher_id == pk:
                     operater_data={"id":str(oid),"firstname":firstname,"lastname":lastname,"phone":phone,"email":email,"position":position}
                     array.append(operater_data)             
-            return JsonResponse({"status":"200","message":"success","data":array}) 
+            return JsonResponse({"status":"200","message":"success","dispatcher_id":str(pk),"data":array}) 
          
 
 
@@ -1184,7 +1216,15 @@ class CreateServiceItemView(APIView):
     renderer_classes=[UserRenderer] 
     @csrf_exempt
     def post(self,request,format=None):
+        dispatcher_id=request.data.get('dispatcher_id')
         service_item_data=request.data.get('service_item_data')
+
+        if not dispatcher_id:
+              return Response({"message":"dispatcher detail required","status":"400"})
+         
+        if not User.objects.filter(id=dispatcher_id,role="dispatcher").exists():
+              return Response({"message":"invalid dispatcher detail","status":"400"})
+
         if not service_item_data:
             return JsonResponse({"message":"you can not send empty details",'status':'400'})
         
@@ -1237,8 +1277,11 @@ class CreateServiceItemView(APIView):
 
                  Operater_Id = Operater.objects.get(id=operater_id)
                  Operater_Id.Operater_Id = Operater_Id
+
+                 Dispatcher_Id = User.objects.get(id=dispatcher_id)
+                 Dispatcher_Id.Dispatcher_Id = Dispatcher_Id
                 
-                 service_item_data=ServiceItem.objects.create(establishment_id=Eastablishment_Id,service_type_id=Service_Type_Id,operater_id=Operater_Id,service_date_time=service_date_time,service_notes=service_notes)
+                 service_item_data=ServiceItem.objects.create(establishment_id=Eastablishment_Id,service_type_id=Service_Type_Id,operater_id=Operater_Id,service_date_time=service_date_time,service_notes=service_notes,dispatcher_id=Dispatcher_Id)
                  serializer=ServiceItemSerializer(data=service_item_data)
                  service_item_data.save()
            return JsonResponse({"message":"service item successfully created",'status':'200'})
@@ -1247,8 +1290,8 @@ class CreateServiceItemView(APIView):
 class GetServiceItemById(APIView):
      @csrf_exempt
      def get(self, request,pk,format=None):
-         if not ServiceItem.objects.filter(id=pk).exists():
-                return JsonResponse({"status":"400","message":"service item not found "})
+         if not ServiceItem.objects.filter(dispatcher_id=pk).exists():
+                return JsonResponse({"status":"400","message":"invalid dispatcher detail"})
          else:
             array=[]
             service_item = ServiceItem.objects.all().order_by('id')
@@ -1260,13 +1303,116 @@ class GetServiceItemById(APIView):
                 operater_id=i['operater_id']
                 service_date_time=i['service_date_time']
                 service_notes=i['service_notes']
+                dispatcher_id=(i['dispatcher_id']) 
                 
-                if sid == pk:
+                if dispatcher_id == pk:
                     service_item_data={"id":str(sid),"establishment_id":str(establishment_id),"service_type_id":str(service_type_id),"operater_id":str(operater_id),"service_date_time":service_date_time,"service_notes":service_notes}
                     array.append(service_item_data)             
-            return JsonResponse({"status":"200","message":"success","data":array}) 
-# get all service item detail       
+            return JsonResponse({"status":"200","message":"success","dispatcher_id":str(pk),"data":array}) 
 
+# update service item view  pending 
+class UpdateServiceItemView(APIView):# new
+  @csrf_exempt
+  def put(self, request, pk, format=None):
+      
+      update_service_item=request.data.get('update_service_item')
+
+      if not ServiceItem.objects.filter(dispatcher_id=pk).exists():
+          return JsonResponse({"message":"invalid dispatcher detail","status":"400"})
+      else:
+      
+        for i in update_service_item:
+            service_item_id=(i['service_item_id']) 
+            establishment_id=i['establishment_id']
+            service_type_id=i['service_type_id']
+            operater_id=i['operater_id']
+            service_date_time=i['service_date_time']
+            service_notes=i['service_notes']
+          
+    
+            if not service_item_id:
+             return JsonResponse({"message":"service_item_id is required","status":"400"})
+            
+            if not ServiceItem.objects.filter(id=service_item_id).exists():
+             return JsonResponse({"message":" service item does not exist with this dispatcher detail","status":"400"})
+            
+            if not establishment_id:
+                return JsonResponse({"message":"please select eastablishment ","status":"400"})
+
+            if not Establishment.objects.filter(id=establishment_id).exists():
+             return JsonResponse({"message":" eastablishment does not exists","status":"400"})
+            
+            if not service_type_id:
+                 return JsonResponse({"message":"please select service type ","status":"400"})
+
+            if not ServiceType.objects.filter(id=service_type_id).exists():
+             return JsonResponse({"message":" service type does not exists","status":"400"})
+            
+            if not operater_id:
+                 return JsonResponse({"message":"please select operater ","status":"400"})
+
+
+            if not Operater.objects.filter(id=operater_id).exists():
+             return JsonResponse({"message":" operater does not exists","status":"400"})
+            
+        
+        for k in update_service_item:
+        
+            service_item_id=(k['service_item_id']) 
+            establishment_id=k['establishment_id']
+            service_type_id=k['service_type_id']
+            operater_id=k['operater_id']
+            service_date_time=k['service_date_time']
+            service_notes=k['service_notes'] 
+            Csdata = ServiceItem.objects.filter(id=service_item_id).values('establishment_id','service_type_id','operater_id','service_date_time','service_notes')
+            
+            
+            if establishment_id:
+                establishment_id=establishment_id
+            else:
+                establishment_id=Csdata[0]['establishment_id']
+            
+            if service_type_id:
+                service_type_id=establishment_id
+            else:
+                service_type_id=Csdata[0]['service_type_id']
+            
+            if operater_id:
+                operater_id=operater_id
+            else:
+                operater_id=Csdata[0]['operater_id']
+
+            if service_date_time:
+                service_date_time=service_date_time
+            else:
+                service_date_time=Csdata[0]['service_date_time']
+            
+            if service_notes:
+                service_notes=service_notes
+            else:
+                service_notes=Csdata[0]['service_notes']
+                
+            if establishment_id:
+                data=ServiceItem.objects.filter(id=service_item_id).update(establishment_id=establishment_id)
+
+            if service_type_id:
+                    data=ServiceItem.objects.filter(id=service_item_id).update(service_type_id=service_type_id)  
+
+            if operater_id:
+                data=ServiceItem.objects.filter(id=service_item_id).update(operater_id=operater_id)
+
+            if service_date_time:
+                data=ServiceItem.objects.filter(id=service_item_id).update(service_date_time=service_date_time)
+            
+            if service_notes:
+                data=ServiceItem.objects.filter(id=service_item_id).update(service_notes=service_notes)
+                
+
+        return JsonResponse({"message":"details successfully updated","status":"200"})
+
+
+
+# get all service item detail    
 class GetServiceItemDetail(APIView):
     @csrf_exempt
     def get(self, request, format=None):
@@ -1332,7 +1478,6 @@ class CreateMultipleCustomerView(APIView):
                     data = {
                             'message':'Email is Already Exists',
                             'status':"400",
-                            "data":{}
                         }
                     return Response(data)
                 
@@ -1343,7 +1488,6 @@ class CreateMultipleCustomerView(APIView):
                     data = {
                             'message':'mobile number is already exist',
                             'status':"400",
-                            "data":{}
                         }
                     return Response(data)
                 
@@ -1606,4 +1750,38 @@ class UpdateMultipleDispatcherView(APIView):
                      data=User.objects.filter(id=dispatcherid).update(position=position)
 
       return JsonResponse({'message':'dispatcher data updated successfully','status':'200'})   
-       
+
+class UserDetailByDispatcherIdView(APIView):
+        def post(self,request,format=None): 
+            dispatcher_id=request.data.get('dispatcher_id')
+            roles=request.data.get('role')
+
+            if not dispatcher_id:
+                return Response({"message":" dispatcher detail required", "status":"400"})
+            
+            if not roles:
+                 return Response({"message":" role required", "status":"400"})
+            
+            if not User.objects.filter(dispatcher_user_id=dispatcher_id).exists():
+             return Response({"message":"invalid dispatcher detail", "status":"400"})
+            
+            else:
+                array=[]
+                user_detail = User.objects.all().order_by('id')
+                serializer2 =  UserRegistrationSerializer(user_detail, many=True)
+                for i in serializer2.data:
+                    user_id=i['id']
+                    First_name=i['First_name']
+                    Last_name=i['Last_name']
+                    email=i['email']
+                    title=i['title']
+                    mobile=i['mobile']
+                    attribute_name=i['attribute_name']
+                    position=i['position']
+                    role=i['role']
+                    dispatcherid=i['dispatcher_user_id']
+                    
+                    if dispatcher_id == dispatcherid and roles==role:
+                        dispatcher_data={"user_id":str(user_id),"First_name":First_name,"Last_name":Last_name,"mobile":mobile,"email":email,"position":position,"title":title,"attribute_name":attribute_name,"role":role}
+                        array.append(dispatcher_data) 
+                return JsonResponse({'message':'success','status':'200','dispatcher_id':str(dispatcher_id),'data':array}) 
