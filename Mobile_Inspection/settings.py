@@ -212,19 +212,19 @@ SIMPLE_JWT = {
 
 
 #Stripe
-API_PUBLISH_KEY = 'pk_test_51LixZiJTvBqbiOKnPcS69thhnqhwWqXz4RZteSKyoBjG1CytGinFMveOjGlNUqE7F9AZYpJRasUy1uwhxSrpZvoO008CcnCRNR'
+API_PUBLISH_KEY = 'Api publish key'
 API_SECRET_KEY = 'API_SECRET_KEY'
 
 #Paypal
-CLIENT_ID =  "AZbSbes1HlwmiI-7wGONJKIA8XTptRIxkKrZ1HSha7mVStBhTr98OVifJxEe2dYjOtxNo3laHlMFzeg1"
-CLIENT_SECRET = 'sk_test_51LixZiJTvBqbiOKnTOF6W6uR1T0f8DMSg6vcAIgyUbTsglCBVOtFy3EK0RlNOVet8OIaXczjMx24otCXwbBd2Msm00PQNhYgJr'
+CLIENT_ID =  "client id"
+CLIENT_SECRET = 'client secret'
 
 #Email Configration
 EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587 #465#
-EMAIL_HOST_USER = "deepika@codenomad.net"
-EMAIL_HOST_PASSWORD = "199428october"
+EMAIL_HOST_USER = "your email id"
+EMAIL_HOST_PASSWORD = "password"
 EMAIL_USE_TLS = True
 PASSWORD_RESET_TIMEOUT= 172800  # In hours 48
 
